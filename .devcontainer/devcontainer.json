@@ -1,0 +1,24 @@
+{
+	"name": "Go",
+	"image": "mcr.microsoft.com/devcontainers/go:1-1.23-bookworm",
+	"features": {
+		"ghcr.io/devcontainers/features/docker-in-docker:2": {}
+	},
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"golang.go",
+				"usernamehw.errorlens"
+			]
+		},
+		"settings": {
+			"terminal.integrated.shell.linux": "/bin/bash"
+		}
+	},
+	"runArgs": [
+		"--privileged"
+	],
+	"mounts": [
+		"source=devoxx-docker,target=/fs,type=volume"
+	]
+}
