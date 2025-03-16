@@ -19,7 +19,7 @@ clean:  ## Clean everything
 
 $(ROOTFS): ## Download and extract the rootfs of the alpine image
 	@mkdir -p $(ROOTFS)
-	docker export $(shell docker create alpine) | tar -C $(ROOTFS) -xvf -
+	docker export $(shell docker create ubuntu) | tar -C $(ROOTFS) -xvf -
 
 help: ## Show help
 	@echo Available commands:
