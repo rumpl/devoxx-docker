@@ -17,5 +17,8 @@
 	},
 	"runArgs": [
 		"--privileged"
+	],
+	"mounts": [
+		"source=devoxx-docker,target=/fs,type=volume"
 	]
 }

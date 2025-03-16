@@ -11,7 +11,9 @@ func main() {
 
 	switch os.Args[1] {
 	case "run":
-		run()
+		if err := run(); err != nil {
+			panic(err)
+		}
 	case "child":
 		if err := child(); err != nil {
 			panic(err)
@@ -46,7 +48,7 @@ func child() error {
 	if err := syscall.Sethostname([]byte("container")); err != nil {
 		return fmt.Errorf("set hostname %w", err)
 	}
-	if err := syscall.Chroot("/home/rumpl/dev/devoxx-docker/rootfs"); err != nil {
+	if err := syscall.Chroot("/fs/ubuntu"); err != nil {
 		return fmt.Errorf("chroot %w", err)
 	}
 	if err := os.Chdir("/"); err != nil {

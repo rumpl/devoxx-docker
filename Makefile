@@ -1,12 +1,14 @@
 TARGET=./bin/devoxx-container
 TARGET_DIR=$(shell dirname $(TARGET))
-ROOTFS=rootfs
+ROOTFS=/fs/ubuntu
 
 default: build
 
+.PHONY: $(TARGET)
 $(TARGET):
 	@go build -o $(TARGET) .
 
+.PHONY: build
 build: $(TARGET) ## Build the application
 
 .PHONY: run
