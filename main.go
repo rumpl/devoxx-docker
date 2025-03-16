@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"os/exec"
 	"syscall"
@@ -13,18 +14,18 @@ func main() {
 	switch os.Args[1] {
 	case "pull":
 		if err := pull(os.Args[2]); err != nil {
-			panic(err)
+			log.Fatal(err)
 		}
 	case "run":
 		if err := run(os.Args[2:]); err != nil {
-			panic(err)
+			log.Fatal(err)
 		}
 	case "child":
 		if err := child(os.Args[2], os.Args[3], os.Args[4:]); err != nil {
-			panic(err)
+			log.Fatal(err)
 		}
 	default:
-		fmt.Println("Unknown command")
+		log.Fatalf("Unknown command %s\n", os.Args[1])
 	}
 }
 
