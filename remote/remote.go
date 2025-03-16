@@ -27,18 +27,15 @@ func NewImagePuller(ref string) *ImagePuller {
 	}
 }
 
-func (p *ImagePuller) parseReference() (string, string, string) {
+func (p *ImagePuller) parseReference() (string, string) {
 	parts := strings.Split(p.reference, "/")
-	var registry, repository, tag string
+	var repository, tag string
 
 	if len(parts) == 1 {
-		registry = "registry-1.docker.io"
 		repository = "library/" + parts[0]
 	} else if len(parts) == 2 {
-		registry = "registry-1.docker.io"
 		repository = strings.Join(parts[0:2], "/")
 	} else {
-		registry = parts[0]
 		repository = strings.Join(parts[1:], "/")
 	}
 
@@ -51,11 +48,11 @@ func (p *ImagePuller) parseReference() (string, string, string) {
 		tag = "latest"
 	}
 
-	return registry, repository, tag
+	return repository, tag
 }
 
 func (p *ImagePuller) Pull() error {
-	registry, repository, tag := p.parseReference()
+	repository, tag := p.parseReference()
 
 	// Get auth token
 	tokenURL := fmt.Sprintf("https://auth.docker.io/token?service=registry.docker.io&scope=repository:%s:pull", repository)
@@ -73,7 +70,7 @@ func (p *ImagePuller) Pull() error {
 	}
 
 	// First try to get the manifest list
-	manifestURL := fmt.Sprintf("https://%s/v2/%s/manifests/%s", registry, repository, tag)
+	manifestURL := fmt.Sprintf("https://registry-1.docker.io/v2/%s/manifests/%s", repository, tag)
 	req, err := http.NewRequest("GET", manifestURL, nil)
 	if err != nil {
 		return fmt.Errorf("failed to create manifest request: %v", err)
@@ -112,7 +109,7 @@ func (p *ImagePuller) Pull() error {
 		}
 
 		// Get the specific manifest
-		manifestURL = fmt.Sprintf("https://%s/v2/%s/manifests/%s", registry, repository, manifestDigest)
+		manifestURL = fmt.Sprintf("https://registry-1.docker.io/v2/%s/manifests/%s", repository, manifestDigest)
 		req, err = http.NewRequest("GET", manifestURL, nil)
 		if err != nil {
 			return fmt.Errorf("failed to create manifest request: %v", err)
@@ -126,6 +123,8 @@ func (p *ImagePuller) Pull() error {
 			return fmt.Errorf("failed to get manifest: %v", err)
 		}
 		defer resp.Body.Close()
+	} else {
+		return fmt.Errorf("unexpected media type: %s", idx.MediaType)
 	}
 
 	var manifest oci.Manifest
@@ -142,7 +141,7 @@ func (p *ImagePuller) Pull() error {
 
 	// Download and extract layers
 	for _, layer := range manifest.Layers {
-		layerURL := fmt.Sprintf("https://%s/v2/%s/blobs/%s", registry, repository, layer.Digest)
+		layerURL := fmt.Sprintf("https://registry-1.docker.io/v2/%s/blobs/%s", repository, layer.Digest)
 		req, err := http.NewRequest("GET", layerURL, nil)
 		if err != nil {
 			return fmt.Errorf("failed to create layer request: %v", err)
