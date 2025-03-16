@@ -5,26 +5,51 @@ import (
 	"os"
 	"os/exec"
 	"syscall"
+
+	"github.com/rumpl/devoxx-docker/remote"
 )
 
 func main() {
-
 	switch os.Args[1] {
+	case "pull":
+		if err := pull(os.Args[2]); err != nil {
+			panic(err)
+		}
 	case "run":
-		if err := run(); err != nil {
+		if err := run(os.Args[2:]); err != nil {
 			panic(err)
 		}
 	case "child":
-		if err := child(); err != nil {
+		if err := child(os.Args[2], os.Args[3], os.Args[4:]); err != nil {
 			panic(err)
 		}
 	default:
-		fmt.Println("Hello, World!")
+		fmt.Println("Unknown command")
 	}
 }
 
-func run() error {
-	cmd := exec.Command("/proc/self/exe", append([]string{"child"}, os.Args[2:]...)...)
+func pull(image string) error {
+	fmt.Printf("Pulling %s\n", image)
+	puller := remote.NewImagePuller(image)
+	err := puller.Pull()
+	fmt.Println("Pulled image")
+	return err
+}
+
+func run(args []string) error {
+	imageName := args[0]
+	_, err := os.Stat("/fs/" + imageName)
+	if err != nil {
+		if os.IsNotExist(err) {
+			if err := pull(imageName); err != nil {
+				return fmt.Errorf("pull %w", err)
+			}
+		} else {
+			return err
+		}
+	}
+
+	cmd := exec.Command("/proc/self/exe", append([]string{"child"}, args...)...)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -37,10 +62,10 @@ func run() error {
 	return cmd.Run()
 }
 
-func child() error {
-	fmt.Printf("Running %v \n", os.Args[2:])
+func child(image string, command string, args []string) error {
+	fmt.Printf("Running %s in %s\n", command, image)
 
-	cmd := exec.Command(os.Args[2], os.Args[3:]...)
+	cmd := exec.Command(command, args...)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -48,12 +73,15 @@ func child() error {
 	if err := syscall.Sethostname([]byte("container")); err != nil {
 		return fmt.Errorf("set hostname %w", err)
 	}
-	if err := syscall.Chroot("/fs/ubuntu"); err != nil {
+
+	if err := syscall.Chroot("/fs/" + image); err != nil {
 		return fmt.Errorf("chroot %w", err)
 	}
+
 	if err := os.Chdir("/"); err != nil {
 		return fmt.Errorf("chdir %w", err)
 	}
+
 	if err := syscall.Mount("proc", "proc", "proc", 0, ""); err != nil {
 		return fmt.Errorf("mount proc %w", err)
 	}
