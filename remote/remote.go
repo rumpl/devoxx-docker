@@ -16,19 +16,19 @@ import (
 )
 
 type ImagePuller struct {
-	Reference string
+	reference string
 	client    *http.Client
 }
 
 func NewImagePuller(ref string) *ImagePuller {
 	return &ImagePuller{
-		Reference: ref,
+		reference: ref,
 		client:    &http.Client{},
 	}
 }
 
 func (p *ImagePuller) parseReference() (string, string, string) {
-	parts := strings.Split(p.Reference, "/")
+	parts := strings.Split(p.reference, "/")
 	var registry, repository, tag string
 
 	if len(parts) == 1 {
