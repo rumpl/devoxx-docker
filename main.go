@@ -71,6 +71,15 @@ func child(image string, command string, args []string) error {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
+	volumeDestination := fmt.Sprintf("/fs/%s/volume", image)
+	if err := os.Mkdir(volumeDestination, 0755); err != nil {
+		return fmt.Errorf("mkdir %w", err)
+	}
+
+	if err := syscall.Mount("/workspaces/devoxx-docker/volume", volumeDestination, "", syscall.MS_PRIVATE|syscall.MS_BIND, ""); err != nil {
+		return fmt.Errorf("mount volume %w", err)
+	}
+
 	if err := syscall.Sethostname([]byte("container")); err != nil {
 		return fmt.Errorf("set hostname %w", err)
 	}
