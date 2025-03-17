@@ -8,10 +8,12 @@ import (
 	"strings"
 	"text/tabwriter"
 
+	"github.com/fatih/color"
 	"github.com/moby/sys/mountinfo"
 )
 
 func pids() error {
+	color.Cyan("\nPIDS")
 	dirs, err := os.ReadDir("/proc")
 	if err != nil {
 		return err
@@ -35,6 +37,7 @@ func pids() error {
 }
 
 func mounts() error {
+	color.Cyan("\nMOUNTS")
 	mis, err := mountinfo.GetMounts(nil)
 	if err != nil {
 		return err
