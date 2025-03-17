@@ -87,6 +87,10 @@ func child(image string, command string, args []string) error {
 		return fmt.Errorf("mount proc %w", err)
 	}
 
+	if err := syscall.Sethostname([]byte("devoxx-container")); err != nil {
+		return fmt.Errorf("set hostname %w", err)
+	}
+
 	if err := cmd.Run(); err != nil {
 		return fmt.Errorf("run %w", err)
 	}
