@@ -54,21 +54,6 @@ func (p *ImagePuller) parseReference() (string, string) {
 func (p *ImagePuller) Pull() error {
 	repository, tag := p.parseReference()
 
-	// Get auth token
-	tokenURL := fmt.Sprintf("https://auth.docker.io/token?service=registry.docker.io&scope=repository:%s:pull", repository)
-	resp, err := p.client.Get(tokenURL)
-	if err != nil {
-		return fmt.Errorf("failed to get auth token: %v", err)
-	}
-	defer resp.Body.Close()
-
-	var tokenResp struct {
-		Token string `json:"token"`
-	}
-	if err := json.NewDecoder(resp.Body).Decode(&tokenResp); err != nil {
-		return fmt.Errorf("failed to decode token response: %v", err)
-	}
-
 	// First try to get the manifest list
 	manifestURL := fmt.Sprintf("https://registry-1.docker.io/v2/%s/manifests/%s", repository, tag)
 	req, err := http.NewRequest("GET", manifestURL, nil)
@@ -76,11 +61,10 @@ func (p *ImagePuller) Pull() error {
 		return fmt.Errorf("failed to create manifest request: %v", err)
 	}
 
-	req.Header.Set("Authorization", "Bearer "+tokenResp.Token)
 	// Request manifest list first
 	req.Header.Set("Accept", "application/vnd.oci.image.index.v1+json")
 
-	resp, err = p.client.Do(req)
+	resp, err := p.client.Do(req)
 	if err != nil {
 		return fmt.Errorf("failed to get manifest list: %v", err)
 	}
@@ -115,7 +99,6 @@ func (p *ImagePuller) Pull() error {
 			return fmt.Errorf("failed to create manifest request: %v", err)
 		}
 
-		req.Header.Set("Authorization", "Bearer "+tokenResp.Token)
 		req.Header.Set("Accept", "application/vnd.oci.image.manifest.v1+json")
 
 		resp, err = p.client.Do(req)
@@ -146,8 +129,6 @@ func (p *ImagePuller) Pull() error {
 		if err != nil {
 			return fmt.Errorf("failed to create layer request: %v", err)
 		}
-
-		req.Header.Set("Authorization", "Bearer "+tokenResp.Token)
 
 		resp, err = p.client.Do(req)
 		if err != nil {
