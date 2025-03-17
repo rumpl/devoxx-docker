@@ -50,6 +50,8 @@ func mounts() error {
 }
 
 func main() {
+	fmt.Println("My pid is", os.Getpid())
+
 	if err := pids(); err != nil {
 		log.Fatal(err)
 	}
