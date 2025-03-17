@@ -80,10 +80,6 @@ func child(image string, command string, args []string) error {
 		return fmt.Errorf("mount volume %w", err)
 	}
 
-	if err := syscall.Sethostname([]byte("container")); err != nil {
-		return fmt.Errorf("set hostname %w", err)
-	}
-
 	if err := syscall.Chroot("/fs/" + image); err != nil {
 		return fmt.Errorf("chroot %w", err)
 	}
