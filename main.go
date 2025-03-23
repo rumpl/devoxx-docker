@@ -7,6 +7,7 @@ import (
 	"os/exec"
 	"syscall"
 
+	"github.com/rumpl/devoxx-docker/cgroups"
 	"github.com/rumpl/devoxx-docker/remote"
 )
 
@@ -97,6 +98,10 @@ func run(args []string) error {
 		return fmt.Errorf("setup NAT %w", err)
 	}
 
+	if err := cgroups.SetupCgroup(cmd.Process.Pid); err != nil {
+		return fmt.Errorf("setup cgroup %w", err)
+	}
+
 	err = cmd.Wait()
 
 	// Cleanup NAT rule
@@ -107,6 +112,10 @@ func run(args []string) error {
 	// Cleanup veth pair
 	if err := exec.Command("ip", "link", "delete", vethName).Run(); err != nil {
 		log.Printf("Warning: failed to cleanup veth pair: %v", err)
+	}
+
+	if err := cgroups.RemoveCgroup(cmd.Process.Pid); err != nil {
+		log.Printf("Warning: failed to remove cgroup: %v", err)
 	}
 
 	return err
@@ -121,7 +130,7 @@ func child(image string, command string, args []string) error {
 	cmd.Stderr = os.Stderr
 
 	volumeDestination := fmt.Sprintf("/fs/%s/volume", image)
-	if err := os.Mkdir(volumeDestination, 0755); err != nil {
+	if err := os.MkdirAll(volumeDestination, 0755); err != nil {
 		return fmt.Errorf("mkdir %w", err)
 	}
 
@@ -137,15 +146,18 @@ func child(image string, command string, args []string) error {
 		return fmt.Errorf("chdir %w", err)
 	}
 
-	if err := syscall.Mount("proc", "proc", "proc", 0, ""); err != nil {
+	if err := syscall.Mount("proc", "/proc", "proc", 0, ""); err != nil {
 		return fmt.Errorf("mount proc %w", err)
 	}
 
-	if err := syscall.Mount("sys", "sys", "sysfs", 0, ""); err != nil {
+	if err := syscall.Mount("sysfs", "/sys", "sysfs", 0, ""); err != nil {
 		return fmt.Errorf("mount sys %w", err)
 	}
+	if err := syscall.Mount("cgroup2", "/sys/fs/cgroup", "cgroup2", 0, ""); err != nil {
+		return fmt.Errorf("mount cgroup2 %w", err)
+	}
 
-	if err := syscall.Mount("dev", "dev", "devtmpfs", 0, ""); err != nil {
+	if err := syscall.Mount("dev", "/dev", "devtmpfs", 0, ""); err != nil {
 		return fmt.Errorf("mount dev %w", err)
 	}
 
@@ -155,26 +167,32 @@ func child(image string, command string, args []string) error {
 
 	peerName := "veth1"
 	if err := exec.Command("ip", "addr", "add", "10.0.0.2/24", "dev", peerName).Run(); err != nil {
-		return err
+		return fmt.Errorf("add ip to peer %w", err)
 	}
 	if err := exec.Command("ip", "link", "set", peerName, "up").Run(); err != nil {
-		return err
+		return fmt.Errorf("set peer up %w", err)
 	}
 	if err := exec.Command("ip", "route", "add", "default", "via", "10.0.0.1").Run(); err != nil {
-		return err
+		return fmt.Errorf("add route %w", err)
 	}
 
 	if err := cmd.Run(); err != nil {
 		return fmt.Errorf("start %w", err)
 	}
 
-	if err := syscall.Unmount("proc", 0); err != nil {
+	if err := syscall.Unmount("/proc", 0); err != nil {
 		return fmt.Errorf("unmount proc %w", err)
 	}
-	if err := syscall.Unmount("sys", 0); err != nil {
+
+	if err := syscall.Unmount("/sys/fs/cgroup", 0); err != nil {
+		return fmt.Errorf("unmount cgroup %w", err)
+	}
+
+	if err := syscall.Unmount("/sys", 0); err != nil {
 		return fmt.Errorf("unmount sys %w", err)
 	}
-	if err := syscall.Unmount("dev", 0); err != nil {
+
+	if err := syscall.Unmount("/dev", 0); err != nil {
 		return fmt.Errorf("unmount dev %w", err)
 	}
 
