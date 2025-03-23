@@ -41,11 +41,11 @@ func pull(image string) error {
 }
 
 func run(args []string) error {
-	imageName := args[0]
-	_, err := os.Stat("/fs/" + imageName)
+	image := args[0]
+	_, err := os.Stat("/fs/" + image)
 	if err != nil {
 		if os.IsNotExist(err) {
-			if err := pull(imageName); err != nil {
+			if err := pull(image); err != nil {
 				return fmt.Errorf("pull %w", err)
 			}
 		} else {
@@ -53,11 +53,11 @@ func run(args []string) error {
 		}
 	}
 
-	if err := os.MkdirAll("/fs/"+imageName+"/etc", 0755); err != nil {
+	if err := os.MkdirAll("/fs/"+image+"/etc", 0755); err != nil {
 		return fmt.Errorf("create etc dir: %w", err)
 	}
 
-	if err := os.WriteFile("/fs/"+imageName+"/etc/resolv.conf", []byte("nameserver 1.1.1.1\n"), 0644); err != nil {
+	if err := os.WriteFile("/fs/"+image+"/etc/resolv.conf", []byte("nameserver 1.1.1.1\n"), 0644); err != nil {
 		return fmt.Errorf("write resolv.conf: %w", err)
 	}
 
