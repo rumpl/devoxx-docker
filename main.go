@@ -50,17 +50,81 @@ func run(args []string) error {
 		}
 	}
 
+	if err := os.MkdirAll("/fs/"+imageName+"/etc", 0755); err != nil {
+		return fmt.Errorf("create etc dir: %w", err)
+	}
+
+	if err := os.WriteFile("/fs/"+imageName+"/etc/resolv.conf", []byte("nameserver 1.1.1.1\n"), 0644); err != nil {
+		return fmt.Errorf("write resolv.conf: %w", err)
+	}
+
 	cmd := exec.Command("/proc/self/exe", append([]string{"child"}, args...)...)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
 	cmd.SysProcAttr = &syscall.SysProcAttr{
-		Cloneflags:   syscall.CLONE_NEWUTS | syscall.CLONE_NEWPID | syscall.CLONE_NEWNS,
+		Cloneflags:   syscall.CLONE_NEWUTS | syscall.CLONE_NEWPID | syscall.CLONE_NEWNS | syscall.CLONE_NEWNET,
 		Unshareflags: syscall.CLONE_NEWNS,
 	}
 
-	return cmd.Run()
+	// Create veth pair
+	vethName := "veth0"
+	peerName := "veth1"
+	if err := exec.Command("ip", "link", "add", vethName, "type", "veth", "peer", "name", peerName).Run(); err != nil {
+		return fmt.Errorf("create veth pair %w", err)
+	}
+
+	cmd.Start()
+
+	// Move peer end into container network namespace
+	if err := exec.Command("ip", "link", "set", peerName, "netns", fmt.Sprintf("%d", cmd.Process.Pid)).Run(); err != nil {
+		return fmt.Errorf("move veth to netns %w", err)
+	}
+
+	// Setup host end
+	if err := exec.Command("ip", "addr", "add", "10.0.0.1/24", "dev", vethName).Run(); err != nil {
+		return fmt.Errorf("add ip to host veth %w", err)
+	}
+	if err := exec.Command("ip", "link", "set", vethName, "up").Run(); err != nil {
+		return fmt.Errorf("set host veth up %w", err)
+	}
+
+	// Setup container end (using nsenter to run commands in container network namespace)
+	nsenter := func(args ...string) error {
+		netnsCmd := append([]string{"nsenter", "-t", fmt.Sprintf("%d", cmd.Process.Pid), "-n"}, args...)
+		if err := exec.Command(netnsCmd[0], netnsCmd[1:]...).Run(); err != nil {
+			return fmt.Errorf("nsenter %v: %w", args, err)
+		}
+		return nil
+	}
+
+	if err := nsenter("ip", "addr", "add", "10.0.0.2/24", "dev", peerName); err != nil {
+		return err
+	}
+	if err := nsenter("ip", "link", "set", peerName, "up"); err != nil {
+		return err
+	}
+	if err := nsenter("ip", "route", "add", "default", "via", "10.0.0.1"); err != nil {
+		return err
+	}
+
+	// Setup NAT
+	if err := exec.Command("iptables", "-t", "nat", "-A", "POSTROUTING", "-s", "10.0.0.0/24", "-j", "MASQUERADE").Run(); err != nil {
+		return fmt.Errorf("setup NAT %w", err)
+	}
+
+	err = cmd.Wait()
+	// Cleanup NAT rule
+	if err := exec.Command("iptables", "-t", "nat", "-D", "POSTROUTING", "-s", "10.0.0.0/24", "-j", "MASQUERADE").Run(); err != nil {
+		log.Printf("Warning: failed to cleanup NAT rule: %v", err)
+	}
+
+	// Cleanup veth pair
+	if err := exec.Command("ip", "link", "delete", vethName).Run(); err != nil {
+		log.Printf("Warning: failed to cleanup veth pair: %v", err)
+	}
+	return err
 }
 
 func child(image string, command string, args []string) error {
@@ -92,12 +156,24 @@ func child(image string, command string, args []string) error {
 		return fmt.Errorf("mount proc %w", err)
 	}
 
+	if err := syscall.Mount("sys", "sys", "sysfs", 0, ""); err != nil {
+		return fmt.Errorf("mount sys %w", err)
+	}
+
+	if err := syscall.Mount("dev", "dev", "devtmpfs", 0, ""); err != nil {
+		return fmt.Errorf("mount dev %w", err)
+	}
+
 	if err := syscall.Sethostname([]byte("devoxx-container")); err != nil {
 		return fmt.Errorf("set hostname %w", err)
 	}
 
-	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("run %w", err)
+	if err := cmd.Start(); err != nil {
+		return fmt.Errorf("start %w", err)
+	}
+
+	if err := cmd.Wait(); err != nil {
+		return fmt.Errorf("wait %w", err)
 	}
 
 	return syscall.Unmount("proc", 0)
