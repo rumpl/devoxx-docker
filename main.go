@@ -75,7 +75,9 @@ func run(args []string) error {
 		return fmt.Errorf("create veth pair %w", err)
 	}
 
-	cmd.Start()
+	if err := cmd.Start(); err != nil {
+		return fmt.Errorf("start %w", err)
+	}
 
 	// Move peer end into container network namespace
 	if err := exec.Command("ip", "link", "set", peerName, "netns", fmt.Sprintf("%d", cmd.Process.Pid)).Run(); err != nil {
@@ -90,31 +92,13 @@ func run(args []string) error {
 		return fmt.Errorf("set host veth up %w", err)
 	}
 
-	// Setup container end (using nsenter to run commands in container network namespace)
-	nsenter := func(args ...string) error {
-		netnsCmd := append([]string{"nsenter", "-t", fmt.Sprintf("%d", cmd.Process.Pid), "-n"}, args...)
-		if err := exec.Command(netnsCmd[0], netnsCmd[1:]...).Run(); err != nil {
-			return fmt.Errorf("nsenter %v: %w", args, err)
-		}
-		return nil
-	}
-
-	if err := nsenter("ip", "addr", "add", "10.0.0.2/24", "dev", peerName); err != nil {
-		return err
-	}
-	if err := nsenter("ip", "link", "set", peerName, "up"); err != nil {
-		return err
-	}
-	if err := nsenter("ip", "route", "add", "default", "via", "10.0.0.1"); err != nil {
-		return err
-	}
-
 	// Setup NAT
 	if err := exec.Command("iptables", "-t", "nat", "-A", "POSTROUTING", "-s", "10.0.0.0/24", "-j", "MASQUERADE").Run(); err != nil {
 		return fmt.Errorf("setup NAT %w", err)
 	}
 
 	err = cmd.Wait()
+
 	// Cleanup NAT rule
 	if err := exec.Command("iptables", "-t", "nat", "-D", "POSTROUTING", "-s", "10.0.0.0/24", "-j", "MASQUERADE").Run(); err != nil {
 		log.Printf("Warning: failed to cleanup NAT rule: %v", err)
@@ -124,6 +108,7 @@ func run(args []string) error {
 	if err := exec.Command("ip", "link", "delete", vethName).Run(); err != nil {
 		log.Printf("Warning: failed to cleanup veth pair: %v", err)
 	}
+
 	return err
 }
 
@@ -168,13 +153,30 @@ func child(image string, command string, args []string) error {
 		return fmt.Errorf("set hostname %w", err)
 	}
 
-	if err := cmd.Start(); err != nil {
+	peerName := "veth1"
+	if err := exec.Command("ip", "addr", "add", "10.0.0.2/24", "dev", peerName).Run(); err != nil {
+		return err
+	}
+	if err := exec.Command("ip", "link", "set", peerName, "up").Run(); err != nil {
+		return err
+	}
+	if err := exec.Command("ip", "route", "add", "default", "via", "10.0.0.1").Run(); err != nil {
+		return err
+	}
+
+	if err := cmd.Run(); err != nil {
 		return fmt.Errorf("start %w", err)
 	}
 
-	if err := cmd.Wait(); err != nil {
-		return fmt.Errorf("wait %w", err)
+	if err := syscall.Unmount("proc", 0); err != nil {
+		return fmt.Errorf("unmount proc %w", err)
+	}
+	if err := syscall.Unmount("sys", 0); err != nil {
+		return fmt.Errorf("unmount sys %w", err)
+	}
+	if err := syscall.Unmount("dev", 0); err != nil {
+		return fmt.Errorf("unmount dev %w", err)
 	}
 
-	return syscall.Unmount("proc", 0)
+	return nil
 }
