@@ -64,6 +64,10 @@ func SetupContainerNetworking(peerName string) error {
 		return fmt.Errorf("set peer up %w", err)
 	}
 
+	if err := exec.Command("ip", "link", "set", "lo", "up").Run(); err != nil {
+		return fmt.Errorf("set lo up %w", err)
+	}
+
 	// This command adds a default route to the network interface named in peerName (which is "veth1").
 	// The default route is the path that packets take when they don't match any other routes.
 	// In this case, it's the route to the host's IP address (10.0.0.1),
