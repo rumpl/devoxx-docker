@@ -79,22 +79,28 @@ func run(args []string) error {
 	if err := net.SetupVeth(vethName, cmd.Process.Pid); err != nil {
 		return fmt.Errorf("setup veth %w", err)
 	}
+	defer func() {
+		if err := net.CleanupVeth(vethName); err != nil {
+			log.Printf("cleanup veth %s", err)
+		}
+	}()
 
 	if err := cgroups.SetupCgroup(cmd.Process.Pid); err != nil {
 		return fmt.Errorf("setup cgroup %w", err)
 	}
+	defer func() {
+		if err := cgroups.RemoveCgroup(cmd.Process.Pid); err != nil {
+			log.Printf("remove cgroup %s", err)
+		}
+	}()
 
-	cmdErr := cmd.Wait()
-
-	if err := cgroups.RemoveCgroup(cmd.Process.Pid); err != nil {
-		return fmt.Errorf("remove cgroup %w", err)
+	if err := cmd.Wait(); err != nil {
+		return fmt.Errorf("wait %w", err)
 	}
 
-	if err := net.CleanupVeth(vethName); err != nil {
-		return fmt.Errorf("cleanup veth %w", err)
-	}
+	fmt.Printf("Container exited with exit code %d\n", cmd.ProcessState.ExitCode())
 
-	return cmdErr
+	return err
 }
 
 func child(image string, command string, args []string) error {
