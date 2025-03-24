@@ -53,11 +53,11 @@ func run(args []string) error {
 		}
 	}
 
-	if err := os.MkdirAll("/fs/"+image+"/etc", 0755); err != nil {
+	if err := os.MkdirAll("/fs/"+image+"/rootfs/etc", 0755); err != nil {
 		return fmt.Errorf("create etc dir: %w", err)
 	}
 
-	if err := os.WriteFile("/fs/"+image+"/etc/resolv.conf", []byte("nameserver 1.1.1.1\n"), 0644); err != nil {
+	if err := os.WriteFile("/fs/"+image+"/rootfs/etc/resolv.conf", []byte("nameserver 1.1.1.1\n"), 0644); err != nil {
 		return fmt.Errorf("write resolv.conf: %w", err)
 	}
 
@@ -111,7 +111,7 @@ func child(image string, command string, args []string) error {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
-	volumeDestination := fmt.Sprintf("/fs/%s/volume", image)
+	volumeDestination := fmt.Sprintf("/fs/%s/rootfs/volume", image)
 	if err := os.MkdirAll(volumeDestination, 0755); err != nil {
 		return fmt.Errorf("mkdir %w", err)
 	}
@@ -120,10 +120,11 @@ func child(image string, command string, args []string) error {
 		return fmt.Errorf("mount volume %w", err)
 	}
 
-	if err := syscall.Chroot("/fs/" + image); err != nil {
+	if err := syscall.Chroot("/fs/" + image + "/rootfs"); err != nil {
 		return fmt.Errorf("chroot %w", err)
 	}
 
+	// Change to the root directory
 	if err := os.Chdir("/"); err != nil {
 		return fmt.Errorf("chdir %w", err)
 	}

@@ -132,11 +132,43 @@ func (p *ImagePuller) Pull() error {
 		return fmt.Errorf("failed to decode manifest: %v", err)
 	}
 
+	// Download the config blob
+	configURL := fmt.Sprintf("https://registry-1.docker.io/v2/%s/blobs/%s", repository, manifest.Config.Digest)
+	req, err = http.NewRequest("GET", configURL, nil)
+	if err != nil {
+		return fmt.Errorf("failed to create config request: %v", err)
+	}
+
+	req.Header.Set("Authorization", "Bearer "+tokenResp.Token)
+
+	configResp, err := p.client.Do(req)
+	if err != nil {
+		return fmt.Errorf("failed to download config: %v", err)
+	}
+	defer configResp.Body.Close()
+
+	// Create directory for the config
+	image := strings.Split(repository, "/")[len(strings.Split(repository, "/"))-1]
 	// Create destination directory
-	imageName := strings.Split(repository, "/")[len(strings.Split(repository, "/"))-1]
-	destDir := filepath.Join("/fs", imageName)
+	destDir := filepath.Join("/fs", image, "rootfs")
 	if err := os.MkdirAll(destDir, 0755); err != nil {
 		return fmt.Errorf("failed to create destination directory: %v", err)
+	}
+
+	configDir := filepath.Join("/fs", image)
+	if err := os.MkdirAll(configDir, 0755); err != nil {
+		return fmt.Errorf("failed to create config directory: %v", err)
+	}
+
+	// Save the config file
+	configFile, err := os.Create(filepath.Join(configDir, "config.json"))
+	if err != nil {
+		return fmt.Errorf("failed to create config file: %v", err)
+	}
+	defer configFile.Close()
+
+	if _, err := io.Copy(configFile, configResp.Body); err != nil {
+		return fmt.Errorf("failed to save config file: %v", err)
 	}
 
 	// Download and extract layers
@@ -155,9 +187,27 @@ func (p *ImagePuller) Pull() error {
 		}
 		defer resp.Body.Close()
 
-		if err := extractTar(resp.Body, destDir); err != nil {
+		// Save the layer tar file
+		layerDir := filepath.Join("/fs", image, layer.Digest)
+		if err := os.MkdirAll(layerDir, 0755); err != nil {
+			return fmt.Errorf("failed to create layer directory: %v", err)
+		}
+
+		// Create a temporary file to store the layer content
+		layerFile, err := os.Create(filepath.Join(layerDir, "layer.tar"))
+		if err != nil {
+			return fmt.Errorf("failed to create layer file: %v", err)
+		}
+
+		// Create a TeeReader to read the response body and save it to the file simultaneously
+		teeReader := io.TeeReader(resp.Body, layerFile)
+
+		if err := extractTar(teeReader, destDir); err != nil {
+			layerFile.Close()
 			return fmt.Errorf("failed to extract layer: %v", err)
 		}
+
+		layerFile.Close()
 	}
 
 	return nil
