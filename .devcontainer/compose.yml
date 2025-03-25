@@ -1,0 +1,40 @@
+services:
+  devcontainer:
+    image: mcr.microsoft.com/devcontainers/go:1-1.24-bookworm
+    entrypoint: ["/bin/sh", "-c", "sleep infinity"]
+    privileged: true
+    volumes:
+      - ..:/workspaces/devoxx-docker
+      - devoxx-docker:/fs
+
+  shell:
+    build:
+      context: ..
+      target: default
+      dockerfile: ./Dockerfile
+    tty: true
+    stdin_open: true
+    entrypoint: /bin/bash
+    privileged: true
+    volumes:
+      - ..:/workspaces/devoxx-docker
+      - devoxx-docker:/fs
+    profiles:
+      - shell
+  debug:
+    build:
+      context: ..
+      dockerfile: ./Dockerfile
+      target: debug
+    privileged: true
+    network_mode: bridge
+    ports:
+      - 2345:2345
+    volumes:
+      - ..:/workspaces/devoxx-docker
+      - devoxx-docker:/fs
+    profiles:
+      - debug
+
+volumes:
+  devoxx-docker:
