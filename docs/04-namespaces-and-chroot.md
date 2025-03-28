@@ -1,73 +1,138 @@
-# Managing Namespaces and Mounts
+# Managing Namespaces and Root Directory
 
 ## Objective
 
-In this exercise, you will learn how to manage namespaces and mounts in a containerized environment. You will focus on adding a mount, changing the root directory using `chroot`, and changing to the root directory using `Chdir`.
+Learn how to manage filesystem isolation in a containerized environment by implementing mount namespaces and changing the root directory using `chroot`.    
+This exercise demonstrates how to create a contained filesystem environment.
 
 ## Steps
 
-### Step 1: Add a Mount
+### Step 1: Add Mount Namespace
 
-1. Use the `syscall.Mount` function to add a mount.
-    - Add the following code to mount the volume:
-      ```go
-      volumeDestination := "/fs/container/rootfs/volume"
-      if err := os.MkdirAll(volumeDestination, 0755); err != nil {
-          log.Fatalf("Failed to create volume directory: %v", err)
-      }
-      if err := syscall.Mount("/workspaces/devoxx-docker/volume", volumeDestination, "", syscall.MS_PRIVATE|syscall.MS_BIND, ""); err != nil {
-          log.Fatalf("Failed to mount volume: %v", err)
-      }
-      ```
+1. Modify the parent process to include mount namespace capability to the child process:
+    ```go
+    func parent() error {
+        cmd := exec.Command("/proc/self/exe", append([]string{"child"}, os.Args[1:]...)...)
+        
+        // TODO:
+        // 1. Add the mount namespace flag
+    }
+    ```
 
-### Step 2: Change Root Directory
+### Step 2: Setup Root Directory Structure
 
-1. Use the `syscall.Chroot` function to change the root directory.
-    - Add the following code to change the root directory:
-      ```go
-      if err := syscall.Chroot("/fs/container/rootfs"); err != nil {
-          log.Fatalf("Failed to change root directory: %v", err)
-      }
-      ```
+1. Create the function to setup root filesystem:
+    ```go
+    func child() error {
+        // TODO:
+        // 1. Create base rootfs directory at "/fs/container/rootfs"
+        // 2. Set appropriate permissions (0755)
+        // 3. Handle all potential errors
 
-### Step 3: Change to Root Directory
+        return nil
+    }
+    ```
+<details>
+<summary>Hint</summary>
+look at `os.MkdirAll` function
+</details>
 
-1. Use the `os.Chdir` function to change to the root directory.
-    - Add the following code to change to the root directory:
-      ```go
-      if err := os.Chdir("/"); err != nil {
-          log.Fatalf("Failed to change to root directory: %v", err)
-      }
-      ```
+### Step 3: Change Root Directory
 
-### Step 4: Run the Program
+1. Implement container root directory setup:
+    ```go
+    func setupContainer() error {
+        // TODO:
+        // 1. Print the current working directory
+        // 2. Change root to "/fs/container/rootfs"
+        // 3. Change current directory to root ("/")
+        // 4. Handle all potential errors
+        // 5. Implement proper error handling
+        // 6. Print the new working directory
 
-1. Compile and run the Go program.
-    - Save the code in a file named `main.go`.
-    - Open a terminal and navigate to the directory containing `main.go`.
-    - Run the following commands to compile and execute the program:
-      ```sh
-      go build -o devoxx-container
-      sudo ./devoxx-container
-      ```
+        return nil
+    }
+    ```
+<details>
+<summary>Hint</summary>
+look at `syscall.Chroot` and `os.Chdir` functions
 
-2. Observe the output to see the process IDs and how they are isolated in the new namespace.
+</details>
+
+### Step 4: Testing
+
+1. Build and run your program:
+    ```bash
+    # Build the program
+    make
+
+    # Run with sudo (needed for namespace operations)
+    sudo ./bin/devoxx-container
+   ```
+### Summary
+
+We have now implemented mount namespace isolation and changed the root directory for the container.    
+This provides a contained filesystem environment for the container.
+
+[Next step](05-cgroups.md)
 
 ## Hints
 
-- Use the `syscall.Mount` function to add a mount.
-- Use the `syscall.Chroot` function to change the root directory.
-- Use the `os.Chdir` function to change to the root directory.
+- Use `syscall.CLONE_NEWNS` for mount namespace isolation
+- Root privileges are required for namespace operations
+- Use absolute paths when working with directories
+- Remember to handle cleanup in case of errors
+- Check if directories exist before operations
+- Use `defer` for cleanup operations
 
 ## Key Points
 
-- Understand how to create and manage process namespaces.
-- Learn how to use the `syscall` package in Go to manipulate namespaces.
-- Observe the isolation of processes in a new namespace.
-- Learn how to add mounts and change the root directory in a containerized environment.
+- Mount namespaces provide filesystem isolation
+- `chroot` changes the root directory view
+- Proper cleanup is essential to avoid resource leaks
+- Namespace operations require careful error handling
 
 ## Additional Resources
 
-- [man unshare](https://man7.org/linux/man-pages/man1/unshare.1.html)
-- [Go syscall package documentation](https://pkg.go.dev/syscall)
-- [Go exec package documentation](https://pkg.go.dev/os/exec)
+- [man mount_namespaces](https://man7.org/linux/man-pages/man7/mount_namespaces.7.html)
+- [man chroot](https://man7.org/linux/man-pages/man2/chroot.2.html)
+- [Linux Filesystem Hierarchy Standard](https://refspecs.linuxfoundation.org/FHS_3.0/fhs/index.html)
+
+## Command Reference
+
+### Namespace Operations
+```go
+// Create mount namespace
+syscall.CLONE_NEWNS
+
+// Change root
+syscall.Chroot(path)
+```
+
+### Debugging Commands
+```bash
+# Check filesystem structure
+ls -la /fs/container/rootfs
+
+# View mount namespaces
+ls -l /proc/$$/ns/mnt
+
+# View process namespaces
+ls -l /proc/$$/ns/
+```
+
+### Error Handling Examples
+```go
+// Handle chroot errors
+if err := syscall.Chroot("/fs/container/rootfs"); err != nil {
+    if os.IsPermission(err) {
+        return fmt.Errorf("chroot permission denied (run with sudo): %w", err)
+    }
+    return fmt.Errorf("chroot failed: %w", err)
+}
+
+// Handle directory operations
+if err := os.MkdirAll("/path/to/dir", 0755); err != nil {
+    return fmt.Errorf("failed to create directory: %w", err)
+}
+```
