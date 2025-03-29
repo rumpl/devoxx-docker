@@ -5,9 +5,11 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"strconv"
 	"syscall"
 
 	"github.com/rumpl/devoxx-docker/cgroups"
+	"github.com/rumpl/devoxx-docker/ipc"
 	"github.com/rumpl/devoxx-docker/mount"
 	"github.com/rumpl/devoxx-docker/net"
 	"github.com/rumpl/devoxx-docker/remote"
@@ -20,11 +22,21 @@ func main() {
 			log.Fatal(err)
 		}
 	case "run":
-		if err := run(os.Args[2:]); err != nil {
+		if err := parent(os.Args[2:]); err != nil {
 			log.Fatal(err)
 		}
 	case "child":
-		if err := child(os.Args[2], os.Args[3], os.Args[4:]); err != nil {
+		socketFD, err := strconv.Atoi(os.Args[2])
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		socket := os.NewFile(uintptr(socketFD), "child-socket")
+		if socket == nil {
+			log.Fatal("Failed to create socket file from FD")
+		}
+
+		if err := child(socket, os.Args[3], os.Args[4], os.Args[5:]); err != nil {
 			log.Fatal(err)
 		}
 	default:
@@ -40,7 +52,7 @@ func pull(image string) error {
 	return err
 }
 
-func run(args []string) error {
+func parent(args []string) error {
 	image := args[0]
 	_, err := os.Stat("/fs/" + image)
 	if err != nil {
@@ -61,10 +73,21 @@ func run(args []string) error {
 		return fmt.Errorf("write resolv.conf: %w", err)
 	}
 
-	cmd := exec.Command("/proc/self/exe", append([]string{"child"}, args...)...)
+	parentSocket, childSocket, err := ipc.CreateSocketPair()
+	if err != nil {
+		return fmt.Errorf("create socket pair: %w", err)
+	}
+	defer parentSocket.Close()
+
+	childFD := childSocket.Fd()
+	socketFD := strconv.Itoa(int(childFD))
+
+	cmd := exec.Command("/proc/self/exe", append([]string{"child", socketFD}, args...)...)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
+
+	cmd.ExtraFiles = []*os.File{childSocket}
 
 	cmd.SysProcAttr = &syscall.SysProcAttr{
 		Cloneflags:   syscall.CLONE_NEWUTS | syscall.CLONE_NEWPID | syscall.CLONE_NEWNS | syscall.CLONE_NEWNET,
@@ -74,6 +97,8 @@ func run(args []string) error {
 	if err := cmd.Start(); err != nil {
 		return fmt.Errorf("start %w", err)
 	}
+
+	childSocket.Close()
 
 	vethName := "veth0"
 	if err := net.SetupVeth(vethName, cmd.Process.Pid); err != nil {
@@ -94,6 +119,11 @@ func run(args []string) error {
 		}
 	}()
 
+	// We are done setting up things, tell the child to continue
+	if err := ipc.SendReady(parentSocket); err != nil {
+		return fmt.Errorf("send ready: %w", err)
+	}
+
 	if err := cmd.Wait(); err != nil {
 		return fmt.Errorf("wait %w", err)
 	}
@@ -103,8 +133,9 @@ func run(args []string) error {
 	return err
 }
 
-func child(image string, command string, args []string) error {
+func child(socket *os.File, image string, command string, args []string) error {
 	fmt.Printf("Running %s in %s\n", command, image)
+	defer socket.Close()
 
 	cmd := exec.Command(command, args...)
 	cmd.Stdin = os.Stdin
@@ -135,6 +166,11 @@ func child(image string, command string, args []string) error {
 
 	if err := syscall.Sethostname([]byte("devoxx-container")); err != nil {
 		return fmt.Errorf("set hostname %w", err)
+	}
+
+	// Wait for parent to complete network setup
+	if err := ipc.WaitForReady(socket); err != nil {
+		return fmt.Errorf("wait for network setup: %w", err)
 	}
 
 	peerName := "veth1"
