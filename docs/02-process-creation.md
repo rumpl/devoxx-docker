@@ -55,7 +55,7 @@ func child() error {
 
 1. Build and run your program:
 
-```bash
+```console
 # Build the program
 go build -o devoxx-container
 
@@ -80,7 +80,7 @@ become a real container.
 
 ### Process Information
 
-```bash
+```console
 # View process tree
 ps -ef --forest
 

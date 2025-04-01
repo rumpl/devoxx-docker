@@ -75,7 +75,7 @@ defer CleanupVeth(vethName)  // Ensure cleanup on exit
 
 1. Test your network implementation:
 
-```bash
+```console
 # From inside the container
 ping 10.0.0.1     # Should reach host
 ping 8.8.8.8      # Should reach internet
@@ -114,7 +114,7 @@ ping google.com   # Should resolve and reach
 
 ### Host Network Configuration
 
-```bash
+```console
 # Create veth pair
 ip link add <veth-host> type veth peer name <veth-container>
 
@@ -131,7 +131,7 @@ iptables -t nat -A POSTROUTING -s 10.0.0.0/24 -j MASQUERADE
 
 ### Container Network Configuration
 
-```bash
+```console
 # Configure container interface
 ip addr add 10.0.0.2/24 dev <veth-container>
 ip link set <veth-container> up

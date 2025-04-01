@@ -37,7 +37,9 @@ round-trip min/avg/max = 10.580/10.580/10.580 ms
 
 ## Prerequisites
 
-- Docker Desktop
+If you are on Windows or Mac, all you need is Docker Desktop and an IDE that knows how to run a devcontainer. 
+
+If you are on Linux please use a VM, we will be calling things that require root privileges and could damage your system.
 
 ## Development Environment
 
@@ -58,18 +60,15 @@ previous ones:
 ### 1. Process Management
 
 - [Process Creation Basics](02-process-creation.md)
-
   - Creating parent and child processes
 
 - [Namespace Isolation](03-namespace-isolation.md)
-  - PID namespace implementation
+  - PID namespace isolation
   - UTS namespace for hostname isolation
-  - Basic process isolation
 
 ### 2. Container Foundation
 
 - [Namespaces and Root Directory](04-namespaces-and-chroot.md)
-
   - Managing multiple namespaces
   - Implementing chroot
   - Directory structure setup
@@ -82,7 +81,6 @@ previous ones:
 ### 3. Advanced Features
 
 - [Volume Management](06-volumes.md)
-
   - Implementing bind mounts
   - Volume persistence
   - Data sharing between host and container
@@ -96,20 +94,18 @@ previous ones:
 
 Basic commands to get started:
 
-```bash
+```console
 # Build the project
 make
 
 # Run a basic container
-sudo ./bin/devoxx-docker run alpine /bin/sh
+sudo ./bin/devoxx-docker <commands>
 ```
 
 ## Additional Resources
 
 - [Linux Namespaces](https://man7.org/linux/man-pages/man7/namespaces.7.html)
 - [Control Groups v2](https://www.kernel.org/doc/Documentation/cgroup-v2.txt)
-- [Container Networking](https://docs.docker.com/network/)
-- [OCI Runtime Specification](https://github.com/opencontainers/runtime-spec)
 
 ## Getting Help
 
@@ -117,4 +113,4 @@ sudo ./bin/devoxx-docker run alpine /bin/sh
 - Check the documentation in each exercise
 - Refer to the hints and command references in each exercise file when stuck
 
-[Start the workshop](02-process-creation.md) \
+[Start the workshop](02-process-creation.md)

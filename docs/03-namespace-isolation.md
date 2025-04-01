@@ -94,7 +94,7 @@ Look at `syscall.Sethostname` function
 
 1. Build and run your program:
 
-```bash
+```console
 # Build the program
 make
 
@@ -139,7 +139,7 @@ syscall.Sethostname([]byte("new-hostname"))
 
 ### Debugging Commands
 
-```bash
+```console
 # Check process namespaces
 ls -l /proc/$$/ns/
 

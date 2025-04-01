@@ -69,7 +69,7 @@ Look at `syscall.Chroot` and `os.Chdir` functions
 
 1. Build and run your program:
 
-```bash
+```console
 # Build the program
 make
 
@@ -123,7 +123,7 @@ syscall.Chroot(path)
 
 ### Debugging Commands
 
-```bash
+```console
 # Check filesystem structure
 ls -la /fs/container/rootfs
 

@@ -84,7 +84,7 @@ func setupContainerVolumes(containerID string) error {
 
 1. Test your volume implementation:
 
-```bash
+```console
 # Create test files in host volume
 echo "test data" > /path/to/host/volume/test.txt
 
@@ -158,7 +158,7 @@ os.RemoveAll(path)
 
 ### Debugging Commands
 
-```bash
+```console
 # List mounts
 mount | grep container-path
 
