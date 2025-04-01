@@ -1,18 +1,18 @@
-# Creating Parent and Child Processes
+# Creating parent and child processes
 
 ## Objective
 
-Technically, a container is a Linux process isolated using `cgroups` (control
-groups) and `namespaces` (like PID, net, mount, user, etc.) to restrict resource
-usage and provide a separate view of the system.
+Technically, at its lowest level a container is a Linux process isolated using
+`cgroups` (control groups) and `namespaces` (like PID, net, mount, user, etc.)
+to restrict resource usage and provide a separate view of the system.
 
 Let's start small and first only create a new process.
 
 ## Steps
 
-### Step 1: Create the Main Function
+### Step 1: create the main function
 
-1. Set up the basic program structure:
+Set up the basic program structure:
 
 ```go
 func main() {
@@ -22,31 +22,39 @@ func main() {
 }
 ```
 
-### Step 2: Implement Child Process
+### Step 2: implement the child process
 
-1. Create the child process handler:
+Create the child process handler:
 
 ```go
 func child() error {
    //TODO:
-   // 1. Print current PID to demonstrate namespace isolation
-   // 2. Execute the desired command, a simple `Hello from child` print to the console is enough for now
-   // 3. Keep process running to observe isolation
+   // 1. Print the PID of the current process
+   // 2. Execute the desired command, printing a simple `Hello from child` is enough for now
 }
 ```
 
 ### Step 3: Implement Parent Process Creation
 
-1. Create a function to handle parent process logic: `go func run() error {
-//TODO: // 1. Create a new command using current executable // 2. Set up
-    stdin/stdout/stderr // 3. Start the child process // 4. Wait for completion
-       and print a message letting us know the child process has exited } `
+Create a function to handle parent process logic: 
+
+```golang
+func run() error {
+   //TODO: 
+   // 1. Print the PID of the current process
+   // 2. Create a new process using current executable 
+   // 3. Set up stdin/stdout/stderr 
+   // 4. Start the child process 
+   // 5. Wait for completion and print a message letting us know the child process has exited 
+} 
+```
+
 <details>
 <summary>Hints</summary>
 
+- Use `os.Getpid()` to get the pid of the current process
 - Use `/proc/self/exe` to re-execute the same process
 - Use `os.Args` to detect if running as child
-- Remember to handle all potential errors
 - Use `cmd.Start()` and `cmd.Wait()` for better process control
 
 </details>
@@ -61,6 +69,9 @@ go build -o devoxx-container
 
 # Run the program
 ./devoxx-container
+PARENT: Hello from parent, my pid is 1234
+CHILD: Hello from child, my pid is 1325
+PARENT: Child exited with exit code 0
 ```
 
 ### Summary
@@ -75,34 +86,3 @@ become a real container.
 
 - [Go os/exec package](https://pkg.go.dev/os/exec)
 - [Go os package](https://pkg.go.dev/os)
-
-## Command Reference
-
-### Process Information
-
-```console
-# View process tree
-ps -ef --forest
-
-# Get current process info
-ps -p $$
-
-# View process environment
-ps eww -p <pid>
-```
-
-### Common Operations
-
-```go
-// Get current PID
-pid := os.Getpid()
-
-// Get parent PID
-ppid := os.Getppid()
-
-// Create command with arguments
-cmd := exec.Command("program", "arg1", "arg2")
-
-// Run command and wait for completion
-err := cmd.Run()
-```
