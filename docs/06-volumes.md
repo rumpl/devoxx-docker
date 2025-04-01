@@ -28,19 +28,19 @@ func setupVolume(volumePath, containerPath string) error {
 
 ```go
 func mountVolume(source, target string) error {
-    // Create the target directory
-    if err := os.MkdirAll(target, 0755); err != nil {
-        return fmt.Errorf("mkdir %w", err)
-    }
-
-    // Perform the bind mount
-    if err := syscall.Mount(source, target, "", syscall.MS_BIND, ""); err != nil {
-        return fmt.Errorf("bind mount %w", err)
-    }
-
-    return nil
+	// TODO:
+	// 1. Check if source and target paths exist
+	// 2. Create target directory if it doesn't exist
+	// 3. Perform bind mount
+	// 4. Handle any errors
+	return nil
 }
 ```
+
+<details>
+<summary>Hint</summary>
+Look at `syscall.Mount` function
+</details>
 
 ### Step 3: Add Volume Unmounting
 
@@ -49,12 +49,16 @@ func mountVolume(source, target string) error {
 ```go
 func unmountVolume(target string) error {
     // TODO:
-    // 1. Unmount the volume using syscall.Unmount
+    // 1. Unmount the volume
     // 2. Handle any busy mount errors
     // 3. Clean up the mount point directory
     return nil
 }
 ```
+<details>
+<summary>Hint</summary>
+Look at `syscall.Unmount` function
+</details>
 
 ### Step 4: Integration with Container Runtime
 
@@ -62,42 +66,38 @@ func unmountVolume(target string) error {
 
 ```go
 func setupContainerVolumes(containerID string) error {
-    volumes := []struct {
-        source string
-        target string
-    }{
-        {"/host/path", "/container/path"},
-        // Add more volume mappings as needed
-    }
-
-    for _, vol := range volumes {
-        if err := mountVolume(vol.source, vol.target); err != nil {
-            return fmt.Errorf("mount volume %s: %w", vol.source, err)
-        }
-    }
-
+	// TODO:
+	// 1. Define volume mappings
+	// 2. Mount each volume
+	// 3. List content of mounted volume
+	
+    
     return nil
 }
 ```
+<details>
+<summary>Hint</summary>
+You can create an array of volume mappings and iterate over them to mount each volume.
+</details>
 
 ### Step 5: Testing
 
 1. Test your volume implementation:
 
 ```console
-# Create test files in host volume
-echo "test data" > /path/to/host/volume/test.txt
+# Build the program
+make
 
-# Run container with volume
-sudo ./container run -v /path/to/host/volume:/container/volume ubuntu /bin/bash
+# Run with sudo (needed for namespace operations)
+sudo ./bin/devoxx-container
 
-# Verify from inside container
-cat /container/volume/test.txt
-touch /container/volume/newfile.txt
-
-# Verify changes are visible on host
-ls -l /path/to/host/volume/newfile.txt
+# check the content of the mounted volumes
 ```
+
+### Summary
+
+We have now implemented volume mounting functionality for containers using bind
+mounts. This enables data persistence and sharing between the host and container.
 
 [Previous step](./05-cgroups.md) [Next step](07-ipc.md)
 
