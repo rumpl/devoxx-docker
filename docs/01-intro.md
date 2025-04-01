@@ -1,31 +1,50 @@
-# Building a Container Runtime from Scratch
+# Introduction
 
-Welcome to this hands-on workshop where you'll learn how to build the basic features of a container runtime from scratch.   
-Through a series of exercises, you'll implement core container features using Go's system programming capabilities.
+Welcome to this hands-on workshop where you'll learn how to build the basic
+features of a container runtime from scratch.  
+Through a series of exercises, you'll implement core container features using
+Go.
+
+Things that we will cover during this workshop:
+
+- Process isolation and management
+- Namespace implementation
+- Resource control with cgroups
+- Filesystem operations
+- Network configuration
+- Volume management
+
+This that we _will not_ cover:
+
+- Downloading an image from Docker hub, the code for this is provided for you
+- Using overlayfs, if you manage to finish all the exercises before the 3h mark
+  this would be a nice next step.
 
 ## Prerequisites
 
-- Go 1.23 or later
-- Linux environment (native or through dev container)
-- Basic understanding of container concepts
-- Root/sudo access for system operations
+- Docker Desktop
 
 ## Development Environment
 
-If you're on MacOS or Windows, you'll need to use the provided dev container environment as the exercises require Linux-specific capabilities. Two options are available:
+If you're on MacOS or Windows, you can use the provided dev container
+environment as the exercises require Linux-specific capabilities. Two options
+are available:
 
-1. **VS Code / JetBrains DevContainer**: Configuration provided in `.devcontainer/`
-2. **Docker Compose**: Run `docker compose run --rm -P --build shell` in the `.devcontainer/` directory
+1. **VS Code / JetBrains DevContainer**: Configuration provided in
+   `.devcontainer/`
+2. **Docker Compose**: Run `docker compose run --rm -P --build shell` in the
+   `.devcontainer/` directory
 
 ## Workshop Structure
 
-The workshop is divided into the following exercises, each building upon the previous ones:
+The workshop is divided into the following exercises, each building upon the
+previous ones:
 
 ### 1. Process Management
+
 - [Process Creation Basics](02-process-creation.md)
+
   - Creating parent and child processes
-  - Process management and communication
-  - Error handling
 
 - [Namespace Isolation](03-namespace-isolation.md)
   - PID namespace implementation
@@ -33,7 +52,9 @@ The workshop is divided into the following exercises, each building upon the pre
   - Basic process isolation
 
 ### 2. Container Foundation
+
 - [Namespaces and Root Directory](04-namespaces-and-chroot.md)
+
   - Managing multiple namespaces
   - Implementing chroot
   - Directory structure setup
@@ -44,7 +65,9 @@ The workshop is divided into the following exercises, each building upon the pre
   - Process resource management
 
 ### 3. Advanced Features
+
 - [Volume Management](06-volumes.md)
+
   - Implementing bind mounts
   - Volume persistence
   - Data sharing between host and container
@@ -66,15 +89,6 @@ make
 sudo ./bin/devoxx-docker run alpine /bin/sh
 ```
 
-## Key Concepts Covered
-
-- Process isolation and management
-- Namespace implementation
-- Resource control with cgroups
-- Filesystem operations
-- Network configuration
-- Volume management
-
 ## Additional Resources
 
 - [Linux Namespaces](https://man7.org/linux/man-pages/man7/namespaces.7.html)
@@ -86,8 +100,6 @@ sudo ./bin/devoxx-docker run alpine /bin/sh
 
 - Use `make help` to see available commands
 - Check the documentation in each exercise
-- Refer to the hints and command references in each exercise file
-
+- Refer to the hints and command references in each exercise file when stuck
 
 [Start the workshop](02-process-creation.md)
-]

@@ -2,74 +2,113 @@
 
 ## Objective
 
-In this exercise, you will learn how to implement namespace isolation and hostname configuration for containers. You will focus on creating a new PID namespace and setting a custom hostname using the UTS namespace.
+The next natural step towards something that resembles a real container is
+isolating the process from the other processes in the system. In Linux this is
+done thanks to namespaces, there are different namespaces provided by the Linux
+kernel:
 
+- UTS namespace (for setting a new hostname without it being global)
+- PID namespace, the processes inside a PID namespaces can only see the
+  processes inside that namespace
+- Network namespace ...
+- etc.
+
+We will only look at the UTS and PID namespace in this exercise.
 
 ## Steps
 
-### Step 1: Add Namespace Isolation
+### Step 1: Prepare the child
 
-1. Modify the parent process creation to include namespace flags:
-    ```go
-    func run() error {
-        cmd := exec.Command("/proc/self/exe", append([]string{"child"}, os.Args...)...)
-        
-         //TODO: 
-        // 1. Add namespace flags for PID and UTS namespaces
-		
-        if err := cmd.Wait(); err != nil {
-           return fmt.Errorf("wait %w", err)
-	    }
+To make sure we are really isolated, first add some logs to the child process,
+print:
 
-	    fmt.Printf("Container exited with exit code %d\n", cmd.ProcessState.ExitCode())
-    }
-    ```
+- the hostname
+- the pid of the process
+
 <details>
-<summary>Hint</summary>
-look at `syscall.SysProcAttr` structure
+<summary>Hints</summary>
+
+Use the `os` package to get the pid of the current process. pid := os.Getpid()
+
 </details>
 
-### Step 2: Implement Hostname Changes
+### Step 2: Add Namespace Isolation
+
+1.  Modify the parent process creation to include namespace flags:
+
+```go
+func run() error {
+cmd := exec.Command("/proc/self/exe", append([]string{"child"}, os.Args...)...)
+
+            //TODO:
+        // 1. Add namespace flags for PID and UTS namespaces
+
+        if err := cmd.Wait(); err != nil {
+            return fmt.Errorf("wait %w", err)
+        }
+
+        fmt.Printf("Container exited with exit code %d\n", cmd.ProcessState.ExitCode())
+    }
+```
+
+    <details>
+    <summary>Hint</summary>
+    Look at the `SysProcAttr` property of the `exec.Cmd` structure
+    </details>
+
+<details>
+<summary>Hint 2</summary>
+You need to set both `Cloneflags` and `Unshareflags`
+</details>
+
+<details>
+<summary>Hint 3 / Solution</summary>
+cmd.SysProcAttr = &syscall.SysProcAttr {
+    Cloneflags: syscall.CLONE_NEWUTS | syscall.CLONE_NEWPID,
+    UnshareFlags: syscall.CLONE_NEWNS,
+}
+</details>
+
+### Step 3: Implement Hostname Changes
+
+Now that the child lives in its own new host and pid namespaces, we can set the
+hostname _for that namespace_ and also take a look at our pid, if everything
+went well, the child pid should be 1.
 
 1. Add hostname configuration to the child process:
-    ```go
-    func child() error {
-        //TODO: 
-		// 1. Set the container hostname
-		// 2.Print the child PID 
-		// 3.Print the hostname to verify the change
-    }
-    ```
+
+```go
+func child() error {
+    //TODO:
+    // 1. Set the container hostname
+    // 2. Print the hostname to verify the change
+}
+```
+
 <details>
 <summary>Hint</summary>
-look at `syscall.Sethostname` function
+Look at `syscall.Sethostname` function
 </details>
 
-### Step 4: Testing
+### Step 5: Testing
 
 1. Build and run your program:
-    ```bash
-    # Build the program
-    make
 
-    # Run with sudo (needed for namespace operations)
-    sudo ./bin/devoxx-container
-   ```
+```bash
+# Build the program
+make
+
+# Run with sudo (needed for namespace operations)
+sudo ./bin/devoxx-container
+```
 
 ### Summary
 
-We have now implemented PID and UTS namespace isolation, providing process isolation and custom hostname configuration for containers.   
+We have now implemented PID and UTS namespace isolation, providing process
+isolation and custom hostname configuration for containers.  
 This is a crucial step towards building a fully functional container runtime.
 
-
 [Next step](04-namespaces-and-chroot.md)
-
-## Hints
-
-- Use `syscall.CLONE_NEWPID` for PID namespace isolation
-- Use `syscall.CLONE_NEWUTS` for hostname namespace isolation
-- Root privileges are required for namespace operations
-- The child process should have PID 1 in its namespace
 
 ## Key Points
 
@@ -87,6 +126,7 @@ This is a crucial step towards building a fully functional container runtime.
 ## Command Reference
 
 ### Namespace Operations
+
 ```go
 // Create new namespaces
 cmd.SysProcAttr = &syscall.SysProcAttr{
@@ -98,6 +138,7 @@ syscall.Sethostname([]byte("new-hostname"))
 ```
 
 ### Debugging Commands
+
 ```bash
 # Check process namespaces
 ls -l /proc/$$/ns/
@@ -110,6 +151,7 @@ ps aux
 ```
 
 ### Error Handling Examples
+
 ```go
 // Handle hostname errors
 if err := syscall.Sethostname([]byte("container-host")); err != nil {
