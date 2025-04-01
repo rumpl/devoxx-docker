@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Implementing Namespace Isolation</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="/static/prism.css">
+</head>
+<body>
+    <header>
+        <h1>Implementing Namespace Isolation</h1>
+        <a href="/" class="home-link">← Back to Index</a>
+    </header>
+    <main>
+        <article class="markdown-content">
+            <h1>Implementing Namespace Isolation</h1>
+<h2>Objective</h2>
+<p>The next natural step towards something that resembles a real container is
+isolating the process from the other processes in the system. In Linux this is
+done thanks to namespaces, there are different namespaces provided by the Linux
+kernel:</p>
+<ul>
+<li>UTS namespace (for setting a new hostname without it being global)</li>
+<li>PID namespace, the processes inside a PID namespaces can only see the
+processes inside that namespace</li>
+<li>Network namespace ...</li>
+<li>etc.</li>
+</ul>
+<p>We will only look at the UTS and PID namespace in this exercise.</p>
+<h2>Steps</h2>
+<h3>Step 1: Prepare the child</h3>
+<p>To make sure we are really isolated, first add some logs to the child process,
+print:</p>
+<ul>
+<li>the hostname</li>
+<li>the pid of the process</li>
+</ul>
+<details>
+<summary>Hints</summary>
+<p>Use the <code>os</code> package to get the pid of the current process. pid := os.Getpid()</p>
+</details>
+<h3>Step 2: Add Namespace Isolation</h3>
+<ol>
+<li>Modify the parent process creation to include namespace flags:</li>
+</ol>
+<pre><code class="language-go">func run() error {
+cmd := exec.Command(&quot;/proc/self/exe&quot;, append([]string{&quot;child&quot;}, os.Args...)...)
+
+            //TODO:
+        // 1. Add namespace flags for PID and UTS namespaces
+
+        if err := cmd.Wait(); err != nil {
+            return fmt.Errorf(&quot;wait %w&quot;, err)
+        }
+
+        fmt.Printf(&quot;Container exited with exit code %d\n&quot;, cmd.ProcessState.ExitCode())
+    }
+</code></pre>
+<pre><code class="language-rust">&lt;details&gt;
+&lt;summary&gt;Hint&lt;/summary&gt;
+Look at the `SysProcAttr` property of the `exec.Cmd` structure
+&lt;/details&gt;
+</code></pre>
+<details>
+<summary>Hint 2</summary>
+You need to set both `Cloneflags` and `Unshareflags`
+</details>
+<details>
+<summary>Hint 3 / Solution</summary>
+cmd.SysProcAttr = &syscall.SysProcAttr {
+    Cloneflags: syscall.CLONE_NEWUTS | syscall.CLONE_NEWPID,
+    UnshareFlags: syscall.CLONE_NEWNS,
+}
+</details>
+<h3>Step 3: Implement Hostname Changes</h3>
+<p>Now that the child lives in its own new host and pid namespaces, we can set the
+hostname <em>for that namespace</em> and also take a look at our pid, if everything
+went well, the child pid should be 1.</p>
+<ol>
+<li>Add hostname configuration to the child process:</li>
+</ol>
+<pre><code class="language-go">func child() error {
+    //TODO:
+    // 1. Set the container hostname
+    // 2. Print the hostname to verify the change
+}
+</code></pre>
+<details>
+<summary>Hint</summary>
+Look at `syscall.Sethostname` function
+</details>
+<h3>Step 5: Testing</h3>
+<ol>
+<li>Build and run your program:</li>
+</ol>
+<pre><code class="language-console"># Build the program
+make
+
+# Run with sudo (needed for namespace operations)
+sudo ./bin/devoxx-container
+</code></pre>
+<h3>Summary</h3>
+<p>We have now implemented PID and UTS namespace isolation, providing process
+isolation and custom hostname configuration for containers.<br />
+This is a crucial step towards building a fully functional container runtime.</p>
+<p><a href="./02-process-creation.html">Previous step</a> <a href="04-namespaces-and-chroot.html">Next step</a></p>
+<h2>Key Points</h2>
+<ul>
+<li>PID namespace provides process isolation</li>
+<li>UTS namespace enables custom hostname</li>
+<li>Namespace changes require root privileges</li>
+<li>Child process sees itself as PID 1</li>
+</ul>
+<h2>Additional Resources</h2>
+<ul>
+<li><a href="https://man7.org/linux/man-pages/man7/namespaces.7.html">man namespaces</a></li>
+<li><a href="https://man7.org/linux/man-pages/man2/clone.2.html">man clone</a></li>
+<li><a href="https://pkg.go.dev/syscall">Go syscall package</a></li>
+</ul>
+<h2>Command Reference</h2>
+<h3>Namespace Operations</h3>
+<pre><code class="language-go">// Create new namespaces
+cmd.SysProcAttr = &amp;syscall.SysProcAttr{
+    Cloneflags: syscall.CLONE_NEWPID | syscall.CLONE_NEWUTS,
+}
+
+// Set hostname
+syscall.Sethostname([]byte(&quot;new-hostname&quot;))
+</code></pre>
+<h3>Debugging Commands</h3>
+<pre><code class="language-console"># Check process namespaces
+ls -l /proc/$$/ns/
+
+# View hostname
+hostname
+
+# Check PID in different namespaces
+ps aux
+</code></pre>
+<h3>Error Handling Examples</h3>
+<pre><code class="language-go">// Handle hostname errors
+if err := syscall.Sethostname([]byte(&quot;container-host&quot;)); err != nil {
+    if os.IsPermission(err) {
+        return fmt.Errorf(&quot;permission denied: run with sudo: %w&quot;, err)
+    }
+    return fmt.Errorf(&quot;hostname error: %w&quot;, err)
+}
+</code></pre>
+
+        </article>
+    </main>
+    <footer>
+        <p>Generated with Markdown Server</p>
+    </footer>
+    <script src="/static/prism.js"></script>
+</body>
+</html>

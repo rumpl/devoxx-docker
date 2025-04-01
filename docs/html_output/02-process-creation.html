@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Creating parent and child processes</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="/static/prism.css">
+</head>
+<body>
+    <header>
+        <h1>Creating parent and child processes</h1>
+        <a href="/" class="home-link">← Back to Index</a>
+    </header>
+    <main>
+        <article class="markdown-content">
+            <h1>Creating parent and child processes</h1>
+<h2>Objective</h2>
+<p>Technically, at its lowest level a container is a Linux process isolated using
+<code>cgroups</code> (control groups) and <code>namespaces</code> (like PID, net, mount, user, etc.)
+to restrict resource usage and provide a separate view of the system.</p>
+<p>Let's start small and first only create a new process.</p>
+<h2>Steps</h2>
+<h3>Step 1: create the main function</h3>
+<p>Set up the basic program structure:</p>
+<pre><code class="language-go">func main() {
+   // TODO: Check if we're running the initial command or the child process
+   // If args contain &quot;child&quot;, call child()
+   // Otherwise, continue with parent process creation
+}
+</code></pre>
+<h3>Step 2: implement the child process</h3>
+<p>Create the child process handler:</p>
+<pre><code class="language-go">func child() error {
+   // TODO:
+   // 1. Print the PID of the current process
+   // 2. Execute the desired command, printing a simple `Hello from child` is enough for now
+}
+</code></pre>
+<h3>Step 3: Implement Parent Process Creation</h3>
+<p>Create a function to handle parent process logic: </p>
+<pre><code class="language-golang">func run() error {
+   // TODO: 
+   // 1. Print the PID of the current process
+   // 2. Create a new process using current executable 
+   // 3. Set up stdin/stdout/stderr 
+   // 4. Start the child process 
+   // 5. Wait for completion and print a message letting us know the child process has exited 
+} 
+</code></pre>
+<details>
+<summary>Hints</summary>
+<ul>
+<li>Use <code>os.Getpid()</code> to get the pid of the current process</li>
+<li>Use <code>/proc/self/exe</code> to re-execute the same process</li>
+<li>Use <code>os.Args</code> to detect if running as child</li>
+<li>Use <code>cmd.Start()</code> and <code>cmd.Wait()</code> for better process control</li>
+</ul>
+</details>
+<h3>Step 4: Testing</h3>
+<ol>
+<li>Build and run your program:</li>
+</ol>
+<pre><code class="language-console"># Build the program
+go build -o devoxx-container
+
+# Run the program
+./devoxx-container
+PARENT: Hello from parent, my pid is 1234
+CHILD: Hello from child, my pid is 1325
+PARENT: Child exited with exit code 0
+</code></pre>
+<h3>Summary</h3>
+<p>We have the basic first step into our journey to creating a container, we have a
+parent process that can manage the child process. This child process will soon
+become a real container.</p>
+<p><a href="./01-intro.html">Previous step</a> <a href="./03-namespace-isolation.html">Next step</a></p>
+<h2>Additional Resources</h2>
+<ul>
+<li><a href="https://pkg.go.dev/os/exec">Go os/exec package</a></li>
+<li><a href="https://pkg.go.dev/os">Go os package</a></li>
+</ul>
+
+        </article>
+    </main>
+    <footer>
+        <p>Generated with Markdown Server</p>
+    </footer>
+    <script src="/static/prism.js"></script>
+</body>
+</html>

@@ -16,7 +16,7 @@ Set up the basic program structure:
 
 ```go
 func main() {
-   //TODO: Check if we're running the initial command or the child process
+   // TODO: Check if we're running the initial command or the child process
    // If args contain "child", call child()
    // Otherwise, continue with parent process creation
 }
@@ -28,7 +28,7 @@ Create the child process handler:
 
 ```go
 func child() error {
-   //TODO:
+   // TODO:
    // 1. Print the PID of the current process
    // 2. Execute the desired command, printing a simple `Hello from child` is enough for now
 }
@@ -40,7 +40,7 @@ Create a function to handle parent process logic:
 
 ```golang
 func run() error {
-   //TODO: 
+   // TODO: 
    // 1. Print the PID of the current process
    // 2. Create a new process using current executable 
    // 3. Set up stdin/stdout/stderr 

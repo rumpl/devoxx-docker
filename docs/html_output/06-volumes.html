@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Implementing Volume Mounts for Containers</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="/static/prism.css">
+</head>
+<body>
+    <header>
+        <h1>Implementing Volume Mounts for Containers</h1>
+        <a href="/" class="home-link">← Back to Index</a>
+    </header>
+    <main>
+        <article class="markdown-content">
+            <h1>Implementing Volume Mounts for Containers</h1>
+<h2>Objective</h2>
+<p>Learn how to implement volume mounting functionality for containers using bind
+mounts. This exercise demonstrates how to share directories between the host and
+container, enabling data persistence and sharing.</p>
+<h2>Steps</h2>
+<h3>Step 1: Create Volume Directory Structure</h3>
+<ol>
+<li>Set up the volume directories:</li>
+</ol>
+<pre><code class="language-go">func setupVolume(volumePath, containerPath string) error {
+    // TODO:
+    // 1. Create the source volume directory on host if it doesn't exist
+    // 2. Create the target mount point in container
+    // 3. Ensure proper permissions (0755)
+    return nil
+}
+</code></pre>
+<h3>Step 2: Implement Bind Mount</h3>
+<ol>
+<li>Create a function to handle bind mounting:</li>
+</ol>
+<pre><code class="language-go">func mountVolume(source, target string) error {
+    // Create the target directory
+    if err := os.MkdirAll(target, 0755); err != nil {
+        return fmt.Errorf(&quot;mkdir %w&quot;, err)
+    }
+
+    // Perform the bind mount
+    if err := syscall.Mount(source, target, &quot;&quot;, syscall.MS_BIND, &quot;&quot;); err != nil {
+        return fmt.Errorf(&quot;bind mount %w&quot;, err)
+    }
+
+    return nil
+}
+</code></pre>
+<h3>Step 3: Add Volume Unmounting</h3>
+<ol>
+<li>Implement clean unmounting of volumes:</li>
+</ol>
+<pre><code class="language-go">func unmountVolume(target string) error {
+    // TODO:
+    // 1. Unmount the volume using syscall.Unmount
+    // 2. Handle any busy mount errors
+    // 3. Clean up the mount point directory
+    return nil
+}
+</code></pre>
+<h3>Step 4: Integration with Container Runtime</h3>
+<ol>
+<li>Add volume handling to your container creation flow:</li>
+</ol>
+<pre><code class="language-go">func setupContainerVolumes(containerID string) error {
+    volumes := []struct {
+        source string
+        target string
+    }{
+        {&quot;/host/path&quot;, &quot;/container/path&quot;},
+        // Add more volume mappings as needed
+    }
+
+    for _, vol := range volumes {
+        if err := mountVolume(vol.source, vol.target); err != nil {
+            return fmt.Errorf(&quot;mount volume %s: %w&quot;, vol.source, err)
+        }
+    }
+
+    return nil
+}
+</code></pre>
+<h3>Step 5: Testing</h3>
+<ol>
+<li>Test your volume implementation:</li>
+</ol>
+<pre><code class="language-console"># Create test files in host volume
+echo &quot;test data&quot; &gt; /path/to/host/volume/test.txt
+
+# Run container with volume
+sudo ./container run -v /path/to/host/volume:/container/volume ubuntu /bin/bash
+
+# Verify from inside container
+cat /container/volume/test.txt
+touch /container/volume/newfile.txt
+
+# Verify changes are visible on host
+ls -l /path/to/host/volume/newfile.txt
+</code></pre>
+<p><a href="./05-cgroups.html">Previous step</a> <a href="07-network.html">Next step</a></p>
+<h2>Hints</h2>
+<ul>
+<li>Use <code>syscall.Mount()</code> with <code>MS_BIND</code> flag for bind mounts</li>
+<li>Always create target directories before mounting</li>
+<li>Remember to handle unmounting during container cleanup</li>
+<li>Use <code>defer</code> for cleanup operations</li>
+<li>Check for existing mounts before mounting</li>
+<li>Ensure proper error handling and cleanup on failures</li>
+</ul>
+<h2>Key Points</h2>
+<ul>
+<li>Bind mounts create a view of a host directory in the container</li>
+<li>Proper cleanup is essential to avoid orphaned mounts</li>
+<li>Volume paths must exist before mounting</li>
+<li>Changes in mounted volumes are immediately visible in both host and container</li>
+<li>Mount flags affect the behavior of the mounted volume</li>
+</ul>
+<h2>Additional Resources</h2>
+<ul>
+<li><a href="https://man7.org/linux/man-pages/man2/mount.2.html">man mount</a></li>
+<li><a href="https://man7.org/linux/man-pages/man2/umount.2.html">man umount</a></li>
+<li><a href="https://man7.org/linux/man-pages/man8/mount.8.html#BIND_MOUNT_OPERATION">Linux bind
+mounts</a></li>
+<li><a href="https://docs.docker.com/storage/volumes/">Container volumes</a></li>
+</ul>
+<h2>Command Reference</h2>
+<h3>Mount Operations</h3>
+<pre><code class="language-go">// Basic bind mount
+syscall.Mount(source, target, &quot;&quot;, syscall.MS_BIND, &quot;&quot;)
+
+// Bind mount with additional flags
+syscall.Mount(source, target, &quot;&quot;, syscall.MS_BIND|syscall.MS_REC, &quot;&quot;)
+
+// Unmount
+syscall.Unmount(target, 0)
+</code></pre>
+<h3>Directory Operations</h3>
+<pre><code class="language-go">// Create mount point
+os.MkdirAll(path, 0755)
+
+// Check if directory exists
+if _, err := os.Stat(path); os.IsNotExist(err) {
+    // Directory doesn't exist
+}
+
+// Remove mount point
+os.RemoveAll(path)
+</code></pre>
+<h3>Debugging Commands</h3>
+<pre><code class="language-console"># List mounts
+mount | grep container-path
+
+# Check mount points
+findmnt
+
+# Debug mount issues
+dmesg | tail
+
+# Check mount namespace
+ls -l /proc/$PID/ns/mnt
+</code></pre>
+<h2>Error Handling Examples</h2>
+<pre><code class="language-go">// Handle busy mount point
+if err := syscall.Unmount(target, 0); err != nil {
+    if err == syscall.EBUSY {
+        // Handle busy mount point
+        return fmt.Errorf(&quot;mount point is busy: %w&quot;, err)
+    }
+    return fmt.Errorf(&quot;unmount failed: %w&quot;, err)
+}
+
+// Handle non-existent source
+if _, err := os.Stat(source); os.IsNotExist(err) {
+    return fmt.Errorf(&quot;source path does not exist: %w&quot;, err)
+}
+</code></pre>
+
+        </article>
+    </main>
+    <footer>
+        <p>Generated with Markdown Server</p>
+    </footer>
+    <script src="/static/prism.js"></script>
+</body>
+</html>

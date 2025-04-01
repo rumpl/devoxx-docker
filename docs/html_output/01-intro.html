@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Introduction</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="/static/prism.css">
+</head>
+<body>
+    <header>
+        <h1>Introduction</h1>
+        <a href="/" class="home-link">← Back to Index</a>
+    </header>
+    <main>
+        <article class="markdown-content">
+            <h1>Introduction</h1>
+<p>Welcome to this hands-on workshop where you'll learn how to build the basic
+features of a container runtime from scratch. Through a series of exercises,
+you'll implement core container features using Go.</p>
+<p>Things that we will cover during this workshop:</p>
+<ul>
+<li>Process isolation and management</li>
+<li>Namespace implementation</li>
+<li>Resource control with cgroups</li>
+<li>Filesystem operations</li>
+<li>Network configuration</li>
+<li>Volume management</li>
+</ul>
+<p>This that we <em>will not</em> cover:</p>
+<ul>
+<li>Downloading an image from Docker hub, the code for this is provided for you</li>
+<li>Using overlayfs, if you manage to finish all the exercises before the 3h mark
+this would be a nice next step.</li>
+</ul>
+<p>If all goes well, at the end of this workshop you will be able to run an alpine
+container downloaded from Docker hub</p>
+<pre><code class="language-console">vscode ➜ /workspaces/devoxx-docker (main) $ sudo ./bin/devoxx-container run alpine /bin/sh
+Running /bin/sh in alpine
+/ # ping google.com
+PING google.com (216.58.214.174): 56 data bytes
+64 bytes from 216.58.214.174: seq=0 ttl=62 time=10.580 ms
+^C
+--- google.com ping statistics ---
+2 packets transmitted, 1 packets received, 50% packet loss
+round-trip min/avg/max = 10.580/10.580/10.580 ms
+/ # 
+</code></pre>
+<h2>Prerequisites</h2>
+<p>If you are on Windows or Mac, all you need is Docker Desktop and an IDE that knows how to run a devcontainer. </p>
+<p>If you are on Linux please use a VM, we will be calling things that require root privileges and could damage your system.</p>
+<h2>Development Environment</h2>
+<p>If you're on MacOS or Windows, you can use the provided dev container
+environment as the exercises require Linux-specific capabilities. Two options
+are available:</p>
+<ol>
+<li><strong>VS Code / JetBrains DevContainer</strong>: Configuration provided in
+<code>.devcontainer/</code></li>
+<li><strong>Docker Compose</strong>: Run <code>docker compose run --rm -P --build shell</code> in the
+<code>.devcontainer/</code> directory</li>
+</ol>
+<h2>Workshop Structure</h2>
+<p>The workshop is divided into the following exercises, each building upon the
+previous ones:</p>
+<h3>1. Process Management</h3>
+<ul>
+<li>
+<p><a href="02-process-creation.html">Process Creation Basics</a></p>
+<ul>
+<li>Creating parent and child processes</li>
+</ul>
+</li>
+<li>
+<p><a href="03-namespace-isolation.html">Namespace Isolation</a></p>
+<ul>
+<li>PID namespace isolation</li>
+<li>UTS namespace for hostname isolation</li>
+</ul>
+</li>
+</ul>
+<h3>2. Container Foundation</h3>
+<ul>
+<li>
+<p><a href="04-namespaces-and-chroot.html">Namespaces and Root Directory</a></p>
+<ul>
+<li>Managing multiple namespaces</li>
+<li>Implementing chroot</li>
+<li>Directory structure setup</li>
+</ul>
+</li>
+<li>
+<p><a href="05-cgroups.html">Resource Control with cgroups</a></p>
+<ul>
+<li>CPU limitations</li>
+<li>Memory constraints</li>
+<li>Process resource management</li>
+</ul>
+</li>
+</ul>
+<h3>3. Advanced Features</h3>
+<ul>
+<li>
+<p><a href="06-volumes.html">Volume Management</a></p>
+<ul>
+<li>Implementing bind mounts</li>
+<li>Volume persistence</li>
+<li>Data sharing between host and container</li>
+</ul>
+</li>
+<li>
+<p><a href="07-network.html">Network Configuration</a></p>
+<ul>
+<li>Network namespace setup</li>
+<li>Virtual ethernet (veth) pairs</li>
+<li>Basic networking capabilities</li>
+</ul>
+</li>
+</ul>
+<h2>Building and Running</h2>
+<p>Basic commands to get started:</p>
+<pre><code class="language-console"># Build the project
+make
+
+# Run a basic container
+sudo ./bin/devoxx-docker &lt;commands&gt;
+</code></pre>
+<h2>Additional Resources</h2>
+<ul>
+<li><a href="https://man7.org/linux/man-pages/man7/namespaces.7.html">Linux Namespaces</a></li>
+<li><a href="https://www.kernel.org/doc/Documentation/cgroup-v2.txt">Control Groups v2</a></li>
+</ul>
+<h2>Getting Help</h2>
+<ul>
+<li>Use <code>make help</code> to see available commands</li>
+<li>Check the documentation in each exercise</li>
+<li>Refer to the hints and command references in each exercise file when stuck</li>
+</ul>
+<p><a href="02-process-creation.html">Start the workshop</a></p>
+
+        </article>
+    </main>
+    <footer>
+        <p>Generated with Markdown Server</p>
+    </footer>
+    <script src="/static/prism.js"></script>
+</body>
+</html>

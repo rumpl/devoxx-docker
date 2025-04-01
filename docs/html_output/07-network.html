@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adding Network Support to Containers</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="/static/prism.css">
+</head>
+<body>
+    <header>
+        <h1>Adding Network Support to Containers</h1>
+        <a href="/" class="home-link">← Back to Index</a>
+    </header>
+    <main>
+        <article class="markdown-content">
+            <h1>Adding Network Support to Containers</h1>
+<h2>Objective</h2>
+<p>In this exercise, you will implement network isolation and connectivity for
+containers using virtual ethernet (veth) pairs and network namespaces. This will
+enable containers to communicate with the host and access the internet while
+maintaining network isolation.</p>
+<h2>Steps</h2>
+<h3>Step 1: Create Network Namespace</h3>
+<ol>
+<li>Add network namespace isolation in your main container creation code:</li>
+</ol>
+<pre><code class="language-go">cmd.SysProcAttr = &amp;syscall.SysProcAttr{
+    // Add CLONE_NEWNET to your existing clone flags
+    // This creates a new network namespace for the container
+}
+</code></pre>
+<h3>Step 2: Implement veth Pair Creation</h3>
+<ol>
+<li>Create a function to set up the veth pair:</li>
+</ol>
+<pre><code class="language-go">func SetupVeth(vethName string, pid int) error {
+    // TODO: Use &quot;ip link&quot; commands to:
+    // 1. Create a veth pair (veth0 and veth1)
+    // 2. Move veth1 to the container's network namespace
+    // 3. Configure veth0 in the host namespace
+    // 4. Set up NAT rules using iptables
+}
+</code></pre>
+<ol start="2">
+<li>Create a cleanup function to remove the network configuration:</li>
+</ol>
+<pre><code class="language-go">func CleanupVeth(vethName string) error {
+    // TODO: Clean up:
+    // 1. Remove NAT rules
+    // 2. Delete the veth pair
+}
+</code></pre>
+<h3>Step 3: Configure Container Networking</h3>
+<ol>
+<li>Create a function to set up networking inside the container:</li>
+</ol>
+<pre><code class="language-go">func SetupContainerNetworking(peerName string) error {
+    // TODO: Inside the container:
+    // 1. Assign IP address to the container interface
+    // 2. Bring up the interface
+    // 3. Set up the default route
+    // 4. Configure the loopback interface
+}
+</code></pre>
+<h3>Step 4: Integration</h3>
+<ol>
+<li>Add network setup to your container creation flow:</li>
+</ol>
+<pre><code class="language-go">// After starting the container process:
+vethName := &quot;veth0&quot;
+if err := SetupVeth(vethName, cmd.Process.Pid); err != nil {
+    return err
+}
+defer CleanupVeth(vethName)  // Ensure cleanup on exit
+</code></pre>
+<h3>Step 5: Testing</h3>
+<ol>
+<li>Test your network implementation:</li>
+</ol>
+<pre><code class="language-console"># From inside the container
+ping 10.0.0.1     # Should reach host
+ping 8.8.8.8      # Should reach internet
+ping google.com   # Should resolve and reach
+</code></pre>
+<p><a href="06-volumes.html">Previous step</a></p>
+<h2>Hints</h2>
+<ul>
+<li>Use <code>exec.Command()</code> to execute network configuration commands</li>
+<li>The container interface should be in the 10.0.0.0/24 subnet</li>
+<li>Common IP assignments:
+<ul>
+<li>Host interface (veth0): 10.0.0.1</li>
+<li>Container interface (veth1): 10.0.0.2</li>
+</ul>
+</li>
+<li>Required iptables rules should enable NAT for the container subnet</li>
+<li>Use <code>defer</code> for cleanup operations</li>
+</ul>
+<h2>Key Points</h2>
+<ul>
+<li>Network namespaces provide network isolation</li>
+<li>veth pairs create a virtual network connection</li>
+<li>NAT enables internet access from the container</li>
+<li>Proper cleanup is essential to avoid resource leaks</li>
+</ul>
+<h2>Additional Resources</h2>
+<ul>
+<li><a href="https://man7.org/linux/man-pages/man8/ip-netns.8.html">man ip-netns</a></li>
+<li><a href="https://man7.org/linux/man-pages/man4/veth.4.html">man veth</a></li>
+<li><a href="https://man7.org/linux/man-pages/man8/iptables.8.html">man iptables</a></li>
+<li><a href="https://man7.org/linux/man-pages/man7/network_namespaces.7.html">Linux Network
+Namespaces</a></li>
+<li><a href="https://docs.docker.com/network/">Container Networking</a></li>
+</ul>
+<h2>Required Commands Reference</h2>
+<h3>Host Network Configuration</h3>
+<pre><code class="language-console"># Create veth pair
+ip link add &lt;veth-host&gt; type veth peer name &lt;veth-container&gt;
+
+# Move container end to container namespace
+ip link set &lt;veth-container&gt; netns &lt;pid&gt;
+
+# Configure host end
+ip addr add 10.0.0.1/24 dev &lt;veth-host&gt;
+ip link set &lt;veth-host&gt; up
+
+# Configure NAT
+iptables -t nat -A POSTROUTING -s 10.0.0.0/24 -j MASQUERADE
+</code></pre>
+<h3>Container Network Configuration</h3>
+<pre><code class="language-console"># Configure container interface
+ip addr add 10.0.0.2/24 dev &lt;veth-container&gt;
+ip link set &lt;veth-container&gt; up
+ip link set lo up
+ip route add default via 10.0.0.1
+</code></pre>
+
+        </article>
+    </main>
+    <footer>
+        <p>Generated with Markdown Server</p>
+    </footer>
+    <script src="/static/prism.js"></script>
+</body>
+</html>

@@ -1,4 +1,4 @@
-# Implementing Namespace Isolation
+# Implementing namespace isolation
 
 ## Objective
 
@@ -32,41 +32,47 @@ Use the `os` package to get the pid of the current process. pid := os.Getpid()
 
 </details>
 
-### Step 2: Add Namespace Isolation
+### Step 2: Add namespace isolation
 
 1.  Modify the parent process creation to include namespace flags:
 
 ```go
 func run() error {
-cmd := exec.Command("/proc/self/exe", append([]string{"child"}, os.Args...)...)
+    cmd := exec.Command("/proc/self/exe", append([]string{"child"}, os.Args...)...)
 
-            //TODO:
-        // 1. Add namespace flags for PID and UTS namespaces
+        //TODO:
+    // 1. Add namespace flags for PID and UTS namespaces
 
-        if err := cmd.Wait(); err != nil {
-            return fmt.Errorf("wait %w", err)
-        }
+    if err := cmd.Wait(); err != nil {
+        return fmt.Errorf("wait %w", err)
+    }
 
-        fmt.Printf("Container exited with exit code %d\n", cmd.ProcessState.ExitCode())
+    fmt.Printf("Container exited with exit code %d\n", cmd.ProcessState.ExitCode())
     }
 ```
 
-    <details>
-    <summary>Hint</summary>
-    Look at the `SysProcAttr` property of the `exec.Cmd` structure
-    </details>
+<details>
+<summary>Hint</summary>
+
+Look at the `SysProcAttr` property of the `exec.Cmd` structure
+
+</details>
 
 <details>
 <summary>Hint 2</summary>
+
 You need to set both `Cloneflags` and `Unshareflags`
+
 </details>
 
 <details>
 <summary>Hint 3 / Solution</summary>
+
 cmd.SysProcAttr = &syscall.SysProcAttr {
     Cloneflags: syscall.CLONE_NEWUTS | syscall.CLONE_NEWPID,
     UnshareFlags: syscall.CLONE_NEWNS,
 }
+
 </details>
 
 ### Step 3: Implement Hostname Changes
