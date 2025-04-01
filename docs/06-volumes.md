@@ -99,7 +99,7 @@ touch /container/volume/newfile.txt
 ls -l /path/to/host/volume/newfile.txt
 ```
 
-[Previous step](./05-cgroups.md) [Next step](07-network.md)
+[Previous step](./05-cgroups.md) [Next step](07-ipc.md)
 
 ## Hints
 
