@@ -108,7 +108,7 @@ We have now implemented PID and UTS namespace isolation, providing process
 isolation and custom hostname configuration for containers.  
 This is a crucial step towards building a fully functional container runtime.
 
-[Next step](04-namespaces-and-chroot.md)
+[Previous step](./02-process-creation.md) [Next step](04-namespaces-and-chroot.md)
 
 ## Key Points
 

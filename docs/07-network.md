@@ -82,6 +82,8 @@ ping 8.8.8.8      # Should reach internet
 ping google.com   # Should resolve and reach
 ```
 
+[Previous step](06-volumes.md)
+
 ## Hints
 
 - Use `exec.Command()` to execute network configuration commands

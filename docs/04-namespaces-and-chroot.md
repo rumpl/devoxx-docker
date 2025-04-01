@@ -83,7 +83,7 @@ We have now implemented mount namespace isolation and changed the root directory
 for the container.
 This provides a contained filesystem environment for the container.
 
-[Next step](05-cgroups.md)
+[Previous step](./03-namespace-isolation.md) [Next step](05-cgroups.md)
 
 ## Hints
 
@@ -149,8 +149,4 @@ if err := syscall.Chroot("/fs/container/rootfs"); err != nil {
 if err := os.MkdirAll("/path/to/dir", 0755); err != nil {
     return fmt.Errorf("failed to create directory: %w", err)
 }
-```
-
-```
-
 ```

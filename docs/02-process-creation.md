@@ -69,7 +69,7 @@ We have the basic first step into our journey to creating a container, we have a
 parent process that can manage the child process. This child process will soon
 become a real container.
 
-[Next step](03-namespace-isolation.md)
+[Previous step](./01-intro.md) [Next step](./03-namespace-isolation.md)
 
 ## Additional Resources
 
@@ -106,5 +106,3 @@ cmd := exec.Command("program", "arg1", "arg2")
 // Run command and wait for completion
 err := cmd.Run()
 ```
-
-[Previous step](./01-intro.md) [Next step](./03-namespace-isolation.md)

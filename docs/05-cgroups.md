@@ -64,6 +64,8 @@ if err := os.WriteFile(cgroupPath+"/cgroup.procs", []byte(strconv.Itoa(pid)), 06
 2. Observe the output to see the cgroup configuration and how it limits the
    process resources.
 
+[Previous step](./04-namespace-and-chroot.md) [Next step](06-volumes.md)
+
 ## Hints
 
 - Use the `os.Mkdir` function to create the cgroup directory.
