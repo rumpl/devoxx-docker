@@ -1,9 +1,8 @@
 # Introduction
 
 Welcome to this hands-on workshop where you'll learn how to build the basic
-features of a container runtime from scratch.  
-Through a series of exercises, you'll implement core container features using
-Go.
+features of a container runtime from scratch. Through a series of exercises,
+you'll implement core container features using Go.
 
 Things that we will cover during this workshop:
 
@@ -19,6 +18,22 @@ This that we _will not_ cover:
 - Downloading an image from Docker hub, the code for this is provided for you
 - Using overlayfs, if you manage to finish all the exercises before the 3h mark
   this would be a nice next step.
+
+If all goes well, at the end of this workshop you will be able to run an alpine
+container downloaded from Docker hub
+
+```console
+vscode ➜ /workspaces/devoxx-docker (main) $ sudo ./bin/devoxx-container run alpine /bin/sh
+Running /bin/sh in alpine
+/ # ping google.com
+PING google.com (216.58.214.174): 56 data bytes
+64 bytes from 216.58.214.174: seq=0 ttl=62 time=10.580 ms
+^C
+--- google.com ping statistics ---
+2 packets transmitted, 1 packets received, 50% packet loss
+round-trip min/avg/max = 10.580/10.580/10.580 ms
+/ # 
+```
 
 ## Prerequisites
 
@@ -102,4 +117,4 @@ sudo ./bin/devoxx-docker run alpine /bin/sh
 - Check the documentation in each exercise
 - Refer to the hints and command references in each exercise file when stuck
 
-[Start the workshop](02-process-creation.md)
+[Start the workshop](02-process-creation.md) \

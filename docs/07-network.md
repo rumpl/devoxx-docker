@@ -92,7 +92,6 @@ ping google.com   # Should resolve and reach
   - Host interface (veth0): 10.0.0.1
   - Container interface (veth1): 10.0.0.2
 - Required iptables rules should enable NAT for the container subnet
-- Don't forget to enable IP forwarding on the host
 - Use `defer` for cleanup operations
 
 ## Key Points
