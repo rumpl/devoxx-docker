@@ -13,14 +13,16 @@ Things that we will cover during this workshop:
 - Network configuration
 - Volume management
 
-This that we _will not_ cover:
+Things that we _will not_ cover:
 
 - Downloading an image from Docker hub, the code for this is provided for you
 - Using overlayfs, if you manage to finish all the exercises before the 3h mark
   this would be a nice next step.
 
 If all goes well, at the end of this workshop you will be able to run an alpine
-container downloaded from Docker hub
+(or any other) container downloaded from Docker hub.
+
+Here is a sneak peak of how this would look like:
 
 ```console
 vscode ➜ /workspaces/devoxx-docker (main) $ sudo ./bin/devoxx-container run alpine /bin/sh
@@ -32,14 +34,16 @@ PING google.com (216.58.214.174): 56 data bytes
 --- google.com ping statistics ---
 2 packets transmitted, 1 packets received, 50% packet loss
 round-trip min/avg/max = 10.580/10.580/10.580 ms
-/ # 
+/ #
 ```
 
 ## Prerequisites
 
-If you are on Windows or Mac, all you need is Docker Desktop and an IDE that knows how to run a devcontainer. 
+If you are on Windows or Mac, all you need is Docker Desktop and an IDE that
+knows how to run a devcontainer.
 
-If you are on Linux please use a VM, we will be calling things that require root privileges and could damage your system.
+If you are on Linux please use a VM, we will be calling things that require root
+privileges and could potentially damage your system.
 
 ## Development Environment
 
@@ -52,6 +56,24 @@ are available:
 2. **Docker Compose**: Run `docker compose run --rm -P --build shell` in the
    `.devcontainer/` directory
 
+## The code
+
+This repository serves as a starter for this workshop, we already provide the
+code for pulling an image from Docker Hub, pulling is rather involved and we
+wanted you to be able to concentrate only on the runtime part of the container.
+
+### Building and Running
+
+Basic commands to get you started:
+
+```console
+# Build the project
+make
+
+# Run the project
+sudo ./bin/devoxx-docker <commands>
+```
+
 ## Workshop Structure
 
 The workshop is divided into the following exercises, each building upon the
@@ -60,6 +82,7 @@ previous ones:
 ### 1. Process Management
 
 - [Process Creation Basics](02-process-creation.md)
+
   - Creating parent and child processes
 
 - [Namespace Isolation](03-namespace-isolation.md)
@@ -69,6 +92,7 @@ previous ones:
 ### 2. Container Foundation
 
 - [Namespaces and Root Directory](04-namespaces-and-chroot.md)
+
   - Managing multiple namespaces
   - Implementing chroot
   - Directory structure setup
@@ -81,6 +105,7 @@ previous ones:
 ### 3. Advanced Features
 
 - [Volume Management](06-volumes.md)
+
   - Implementing bind mounts
   - Volume persistence
   - Data sharing between host and container
@@ -89,23 +114,6 @@ previous ones:
   - Network namespace setup
   - Virtual ethernet (veth) pairs
   - Basic networking capabilities
-
-## Building and Running
-
-Basic commands to get started:
-
-```console
-# Build the project
-make
-
-# Run a basic container
-sudo ./bin/devoxx-docker <commands>
-```
-
-## Additional Resources
-
-- [Linux Namespaces](https://man7.org/linux/man-pages/man7/namespaces.7.html)
-- [Control Groups v2](https://www.kernel.org/doc/Documentation/cgroup-v2.txt)
 
 ## Getting Help
 

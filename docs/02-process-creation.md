@@ -36,17 +36,17 @@ func child() error {
 
 ### Step 3: Implement Parent Process Creation
 
-Create a function to handle parent process logic: 
+Create a function to handle parent process logic:
 
 ```golang
 func run() error {
-   // TODO: 
+   // TODO:
    // 1. Print the PID of the current process
-   // 2. Create a new process using current executable 
-   // 3. Set up stdin/stdout/stderr 
-   // 4. Start the child process 
-   // 5. Wait for completion and print a message letting us know the child process has exited 
-} 
+   // 2. Create a new process using current executable
+   // 3. Set up stdin/stdout/stderr
+   // 4. Start the child process
+   // 5. Wait for completion and print a message letting us know the child process has exited
+}
 ```
 
 <details>
