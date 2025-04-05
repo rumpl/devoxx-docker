@@ -28,7 +28,7 @@ print:
 <details>
 <summary>Hints</summary>
 
-Use the `os` package to get the pid of the current process. pid := os.Getpid()
+Use the `os` package to get the pid of the current process: `pid := os.Getpid()`
 
 </details>
 
@@ -61,17 +61,18 @@ Look at the `SysProcAttr` property of the `exec.Cmd` structure
 <details>
 <summary>Hint 2</summary>
 
-You need to set both `Cloneflags` and `Unshareflags`
+You need to set the `Cloneflags` to the `cmd`.
 
 </details>
 
 <details>
 <summary>Hint 3 / Solution</summary>
 
+```golang
 cmd.SysProcAttr = &syscall.SysProcAttr {
     Cloneflags: syscall.CLONE_NEWUTS | syscall.CLONE_NEWPID,
-    UnshareFlags: syscall.CLONE_NEWNS,
 }
+```
 
 </details>
 

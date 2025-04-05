@@ -48,7 +48,7 @@ func pull(image string) error {
 	fmt.Printf("Pulling %s\n", image)
 	puller := remote.NewImagePuller(image)
 	err := puller.Pull()
-	fmt.Println("Pulled image")
+	fmt.Println("Pulling done")
 	return err
 }
 
