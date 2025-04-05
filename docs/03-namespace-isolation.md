@@ -101,7 +101,7 @@ Look at `syscall.Sethostname` function
 # Build the program
 make
 
-# Run with sudo (needed for namespace operations)
+# Run with sudo
 sudo ./bin/devoxx-container
 ```
 
@@ -110,13 +110,6 @@ sudo ./bin/devoxx-container
 We have now implemented PID and UTS namespace isolation, providing process
 isolation and custom hostname configuration for containers.  
 This is a crucial step towards building a fully functional container runtime.
-
-# Key Points
-
-- PID namespace provides process isolation
-- UTS namespace enables custom hostname
-- Namespace changes require root privileges
-- Child process sees itself as PID 1
 
 # Additional Resources
 

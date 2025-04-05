@@ -123,6 +123,11 @@ func parent(args []string) error {
 		return fmt.Errorf("send ready: %w", err)
 	}
 
+	volumeDestination := fmt.Sprintf("/fs/%s/rootfs/volume", image)
+	if err := os.MkdirAll(volumeDestination, 0755); err != nil {
+		return fmt.Errorf("mkdir %w", err)
+	}
+
 	if err := cmd.Wait(); err != nil {
 		return fmt.Errorf("wait %w", err)
 	}
@@ -142,10 +147,6 @@ func child(socket *os.File, image string, command string, args []string) error {
 	cmd.Stderr = os.Stderr
 
 	volumeDestination := fmt.Sprintf("/fs/%s/rootfs/volume", image)
-	if err := os.MkdirAll(volumeDestination, 0755); err != nil {
-		return fmt.Errorf("mkdir %w", err)
-	}
-
 	if err := syscall.Mount("/workspaces/devoxx-docker/volume", volumeDestination, "", syscall.MS_PRIVATE|syscall.MS_BIND, ""); err != nil {
 		return fmt.Errorf("mount volume %w", err)
 	}

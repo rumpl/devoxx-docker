@@ -158,11 +158,6 @@ We have now implemented mount namespace isolation and changed the root directory
 for the container. This provides a contained filesystem environment for the
 container.
 
-# Key Points
-
-- Mount namespaces provide filesystem isolation
-- `chroot` changes the root directory view
-
 # Additional Resources
 
 - [man
