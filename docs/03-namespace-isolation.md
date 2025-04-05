@@ -40,7 +40,7 @@ Use the `os` package to get the pid of the current process: `pid := os.Getpid()`
 func run() error {
     cmd := exec.Command("/proc/self/exe", append([]string{"child"}, os.Args...)...)
 
-        //TODO:
+    //TODO:
     // 1. Add namespace flags for PID and UTS namespaces
 
     if err := cmd.Wait(); err != nil {
@@ -129,42 +129,3 @@ This is a crucial step towards building a fully functional container runtime.
 - [man namespaces](https://man7.org/linux/man-pages/man7/namespaces.7.html)
 - [man clone](https://man7.org/linux/man-pages/man2/clone.2.html)
 - [Go syscall package](https://pkg.go.dev/syscall)
-
-## Command Reference
-
-### Namespace Operations
-
-```go
-// Create new namespaces
-cmd.SysProcAttr = &syscall.SysProcAttr{
-    Cloneflags: syscall.CLONE_NEWPID | syscall.CLONE_NEWUTS,
-}
-
-// Set hostname
-syscall.Sethostname([]byte("new-hostname"))
-```
-
-### Debugging Commands
-
-```console
-# Check process namespaces
-ls -l /proc/$$/ns/
-
-# View hostname
-hostname
-
-# Check PID in different namespaces
-ps aux
-```
-
-### Error Handling Examples
-
-```go
-// Handle hostname errors
-if err := syscall.Sethostname([]byte("container-host")); err != nil {
-    if os.IsPermission(err) {
-        return fmt.Errorf("permission denied: run with sudo: %w", err)
-    }
-    return fmt.Errorf("hostname error: %w", err)
-}
-```
