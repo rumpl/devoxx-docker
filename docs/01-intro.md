@@ -37,7 +37,7 @@ round-trip min/avg/max = 10.580/10.580/10.580 ms
 / #
 ```
 
-## Prerequisites
+# Prerequisites
 
 If you are on Windows or Mac, all you need is Docker Desktop and an IDE that
 knows how to run a devcontainer.
@@ -45,7 +45,7 @@ knows how to run a devcontainer.
 If you are on Linux please use a VM, we will be calling things that require root
 privileges and could potentially damage your system.
 
-## Development Environment
+# Development Environment
 
 If you're on MacOS or Windows, you can use the provided dev container
 environment as the exercises require Linux-specific capabilities. Two options
@@ -56,13 +56,13 @@ are available:
 2. **Docker Compose**: Run `docker compose run --rm -P --build shell` in the
    `.devcontainer/` directory
 
-## The code
+# The code
 
 This repository serves as a starter for this workshop, we already provide the
 code for pulling an image from Docker Hub, pulling is rather involved and we
 wanted you to be able to concentrate only on the runtime part of the container.
 
-### Building and Running
+## Building and Running
 
 Basic commands to get you started:
 
@@ -74,12 +74,12 @@ make
 sudo ./bin/devoxx-docker <commands>
 ```
 
-## Workshop Structure
+# Workshop Structure
 
 The workshop is divided into the following exercises, each building upon the
 previous ones:
 
-### 1. Process Management
+## 1. Process Management
 
 - [Process Creation Basics](02-process-creation.md)
 
@@ -89,7 +89,7 @@ previous ones:
   - PID namespace isolation
   - UTS namespace for hostname isolation
 
-### 2. Container Foundation
+## 2. Container Foundation
 
 - [Namespaces and Root Directory](04-namespaces-and-chroot.md)
 
@@ -102,7 +102,7 @@ previous ones:
   - Memory constraints
   - Process resource management
 
-### 3. Advanced Features
+## 3. Advanced Features
 
 - [Volume Management](06-volumes.md)
 
@@ -115,7 +115,7 @@ previous ones:
   - Virtual ethernet (veth) pairs
   - Basic networking capabilities
 
-## Getting Help
+# Getting Help
 
 - Use `make help` to see available commands
 - Check the documentation in each exercise

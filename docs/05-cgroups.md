@@ -1,7 +1,5 @@
 # Discovering cgroups
 
-## Objective
-
 Control groups (cgroups) are a Linux kernel feature that allows you to group
 processes and then limit, prioritize, or monitor their usage of system resources
 like CPU, memory, I/O, etc.
@@ -49,9 +47,7 @@ cgroup can use.
 
 Neat, now let's implement this in our container runtime.
 
-## Steps
-
-### Step 1: Create a cgroup for the container
+# Step 1: Create a cgroup for the container
 
 Create a new directory for the cgroup:
 
@@ -65,7 +61,7 @@ func child() error {
 }
 ```
 
-### Step 2: Configure memory limit
+# Step 2: Configure memory limit
 
 Set the memory limit to 100MB:
 
@@ -78,7 +74,7 @@ func child() error {
 }
 ```
 
-### Step 3: Configure CPU limit
+# Step 3: Configure CPU limit
 
 Set the CPU limit to 50ms per 100ms:
 
@@ -91,7 +87,7 @@ func child() error {
 }
 ```
 
-### Step 4: Add process to the cgroup
+# Step 4: Add process to the cgroup
 
 Add the process to the cgroup:
 
@@ -105,14 +101,14 @@ func child() error {
 }
 ```
 
-### Summary
+# Summary
 
 We have now implemented cgroup configuration to limit memory and CPU usage for
 the container process. This provides resource management capabilities for
 containers.
 
-[Previous step](./04-namespace-and-chroot.md) [Next step](06-volumes.md)
-
-## Additional Resources
+# Additional Resources
 
 - [man cgroups](https://man7.org/linux/man-pages/man7/cgroups.7.html)
+
+[Previous step](./04-namespace-and-chroot.md) [Next step](06-volumes.md)

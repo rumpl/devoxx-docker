@@ -1,16 +1,5 @@
 # Mount namespace and root directory
 
-## Objective
-
-Learn how to manage filesystem isolation in a containerized environment by
-implementing mount namespaces and changing the root directory using `chroot`.  
-This exercise demonstrates how to create a somewhat contained filesystem
-environment.
-
-## Steps
-
-### Step 1: Add mount namespace
-
 Mount namespaces are a complex and powerful feature of the Linux kernel, we are
 only scratching the surface here. We are going to implement the bare minimum but
 feel free to explore and play with them.
@@ -57,6 +46,8 @@ third terminal, exec into the container and create a new mount namespace with
 
 Let's now implement this in our container runtime!
 
+# Step 1: add mount namespace
+
 Modify the parent process to include mount namespace capability to the child
 process:
 
@@ -76,7 +67,7 @@ Use `syscall.CLONE_NEWNS` for mount namespace isolation
 
 </details>
 
-### Step 2: Pull the image
+# Step 2: pull the image
 
 We provide the pulling functionality for you, now is the best time to use it.
 Indeed in the next step we will already start to have everything we need to run
@@ -109,7 +100,7 @@ $ ls -l /fs/alpine/rootfs
 ... contents of the root filesystem of the alpine image ..
 ```
 
-### Step 3: Change the root directory
+# Step 3: change the root directory
 
 Now that we have a root filesystem of an image, we can make the child use that
 root filesystem as its root directory.
@@ -141,7 +132,7 @@ Look at `syscall.Chroot` and `os.Chdir` functions
 > nice extra exercice you can do is to make your program use `pivot_root`
 > instead.
 
-### Step 4: Run a command in the child
+# Step 4: run a command in the child
 
 With the current setup we have:
 
@@ -161,23 +152,23 @@ Once done you should be able to run:
 $ sudo ./bin/devoxx-container run alpine /bin/sh
 ```
 
-### Summary
+# Summary
 
 We have now implemented mount namespace isolation and changed the root directory
 for the container. This provides a contained filesystem environment for the
 container.
 
-[Previous step](./03-namespace-isolation.md) [Next step](05-cgroups.md)
-
-## Key Points
+# Key Points
 
 - Mount namespaces provide filesystem isolation
 - `chroot` changes the root directory view
 
-## Additional Resources
+# Additional Resources
 
 - [man
   mount_namespaces](https://man7.org/linux/man-pages/man7/mount_namespaces.7.html)
 - [man chroot](https://man7.org/linux/man-pages/man2/chroot.2.html)
 - [Linux Filesystem Hierarchy
   Standard](https://refspecs.linuxfoundation.org/FHS_3.0/fhs/index.html)
+
+[Previous step](./03-namespace-isolation.md) [Next step](05-cgroups.md)

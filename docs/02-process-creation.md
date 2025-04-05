@@ -1,6 +1,4 @@
-# Creating a processes
-
-## Objective
+# Create a processes
 
 Technically, at its lowest level a container is a Linux process isolated using
 `cgroups` (control groups) and `namespaces` (like PID, net, mount, user, etc.)
@@ -8,9 +6,7 @@ to restrict resource usage and provide a separate view of the system.
 
 Let's start small and first only create a new process.
 
-## Steps
-
-### Step 1: create the main function
+# Step 1: create the main function
 
 Set up the basic program structure:
 
@@ -22,7 +18,7 @@ func main() {
 }
 ```
 
-### Step 2: implement the child process
+# Step 2: the child process
 
 Create the child process handler:
 
@@ -34,7 +30,7 @@ func child() error {
 }
 ```
 
-### Step 3: Implement Parent Process Creation
+# Step 3: the parent process
 
 Create a function to handle parent process logic:
 
@@ -59,7 +55,7 @@ func run() error {
 
 </details>
 
-### Step 4: Testing
+# Step 4: test
 
 1. Build and run your program:
 
@@ -74,15 +70,15 @@ CHILD: Hello from child, my pid is 1325
 PARENT: Child exited with exit code 0
 ```
 
-### Summary
+# Summary
 
 We have the basic first step into our journey to creating a container, we have a
 parent process that can manage the child process. This child process will soon
 become a real container.
 
-[Previous step](./01-intro.md) [Next step](./03-namespace-isolation.md)
-
-## Additional Resources
+# Additional Resources
 
 - [Go os/exec package](https://pkg.go.dev/os/exec)
 - [Go os package](https://pkg.go.dev/os)
+
+[Previous step](./01-intro.md) [Next step](./03-namespace-isolation.md)

@@ -1,15 +1,11 @@
-# Adding Network Support to Containers
-
-## Objective
+# Adding network support
 
 In this exercise, you will implement network isolation and connectivity for
 containers using virtual ethernet (veth) pairs and network namespaces. This will
 enable containers to communicate with the host and access the internet while
 maintaining network isolation.
 
-## Steps
-
-### Step 1: Create Network Namespace
+# Step 1: create the network namespace
 
 1. Add network namespace isolation in your main container creation code:
 
@@ -20,9 +16,9 @@ cmd.SysProcAttr = &syscall.SysProcAttr{
 }
 ```
 
-### Step 2: Implement veth Pair Creation
+# Step 2: implement veth pair creation
 
-1. Create a function to set up the veth pair:
+Create a function to set up the veth pair:
 
 ```go
 func SetupVeth(vethName string, pid int) error {
@@ -34,7 +30,7 @@ func SetupVeth(vethName string, pid int) error {
 }
 ```
 
-2. Create a cleanup function to remove the network configuration:
+Create a cleanup function to remove the network configuration:
 
 ```go
 func CleanupVeth(vethName string) error {
@@ -44,9 +40,9 @@ func CleanupVeth(vethName string) error {
 }
 ```
 
-### Step 3: Configure Container Networking
+# Step 3: configure container networking
 
-1. Create a function to set up networking inside the container:
+Create a function to set up networking inside the container:
 
 ```go
 func SetupContainerNetworking(peerName string) error {
@@ -58,9 +54,9 @@ func SetupContainerNetworking(peerName string) error {
 }
 ```
 
-### Step 4: Integration
+# Step 4: Integration
 
-1. Add network setup to your container creation flow:
+Add network setup to your container creation flow:
 
 ```go
 // After starting the container process:
@@ -71,7 +67,7 @@ if err := SetupVeth(vethName, cmd.Process.Pid); err != nil {
 defer CleanupVeth(vethName)  // Ensure cleanup on exit
 ```
 
-### Step 5: Testing
+# Step 5: test
 
 1. Test your network implementation:
 
@@ -82,9 +78,7 @@ ping 8.8.8.8      # Should reach internet
 ping google.com   # Should resolve and reach
 ```
 
-[Previous step](06-volumes.md)
-
-## Hints
+# Hints
 
 - Use `exec.Command()` to execute network configuration commands
 - The container interface should be in the 10.0.0.0/24 subnet
@@ -92,16 +86,15 @@ ping google.com   # Should resolve and reach
   - Host interface (veth0): 10.0.0.1
   - Container interface (veth1): 10.0.0.2
 - Required iptables rules should enable NAT for the container subnet
-- Use `defer` for cleanup operations
 
-## Key Points
+# Key Points
 
 - Network namespaces provide network isolation
 - veth pairs create a virtual network connection
 - NAT enables internet access from the container
 - Proper cleanup is essential to avoid resource leaks
 
-## Additional Resources
+# Additional Resources
 
 - [man ip-netns](https://man7.org/linux/man-pages/man8/ip-netns.8.html)
 - [man veth](https://man7.org/linux/man-pages/man4/veth.4.html)
@@ -110,31 +103,5 @@ ping google.com   # Should resolve and reach
   Namespaces](https://man7.org/linux/man-pages/man7/network_namespaces.7.html)
 - [Container Networking](https://docs.docker.com/network/)
 
-## Required Commands Reference
+[Previous step](06-volumes.md)
 
-### Host Network Configuration
-
-```console
-# Create veth pair
-ip link add <veth-host> type veth peer name <veth-container>
-
-# Move container end to container namespace
-ip link set <veth-container> netns <pid>
-
-# Configure host end
-ip addr add 10.0.0.1/24 dev <veth-host>
-ip link set <veth-host> up
-
-# Configure NAT
-iptables -t nat -A POSTROUTING -s 10.0.0.0/24 -j MASQUERADE
-```
-
-### Container Network Configuration
-
-```console
-# Configure container interface
-ip addr add 10.0.0.2/24 dev <veth-container>
-ip link set <veth-container> up
-ip link set lo up
-ip route add default via 10.0.0.1
-```
