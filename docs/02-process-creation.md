@@ -1,4 +1,4 @@
-# Creating parent and child processes
+# Creating a processes
 
 ## Objective
 

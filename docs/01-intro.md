@@ -83,7 +83,7 @@ previous ones:
 
 - [Process Creation Basics](02-process-creation.md)
 
-  - Creating parent and child processes
+  - Creating a processes
 
 - [Namespace Isolation](03-namespace-isolation.md)
   - PID namespace isolation
