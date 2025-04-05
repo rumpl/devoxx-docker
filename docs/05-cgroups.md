@@ -1,4 +1,4 @@
-# Discovering cgroups Configuration
+# Discovering cgroups
 
 ## Objective
 
@@ -14,12 +14,12 @@ adding the process to `cgroup.procs`.
 
 ```go
 func child() error {
-    // TODO:
-    // 1. Create base cgroup directory under the "/fs/cgroup" directory
-    // 2. Set appropriate permissions (0755)
-    // 3. Handle all potential errors
+	// TODO:
+	// 1. Create base cgroup directory under the "/fs/cgroup" directory
+	// 2. Set appropriate permissions (0755)
+	// 3. Handle all potential errors
 
-    return nil
+	return nil
 }
 ```
 
@@ -29,10 +29,10 @@ func child() error {
 
 ```go
 func child() error {
-    // TODO:
-    // 1. Create the file to set the memory limit
-    // 2. Write the limit value (100MB) to the file
-    // 3. Handle all potential errors
+	// TODO:
+	// 1. Create the file to set the memory limit
+	// 2. Write the limit value (100MB) to the file
+	// 3. Handle all potential errors
 }
 ```
 
@@ -55,11 +55,11 @@ func child() error {
 
 ```go
 func child() error {
-    // TODO:
-    // 1. Get the PID of the current process
-    // 2. Create the file to add the process to the cgroup
-    // 3. Write the PID to the file
-    // 4. Handle all potential errors
+	// TODO:
+	// 1. Get the PID of the current process
+	// 2. Create the file to add the process to the cgroup
+	// 3. Write the PID to the file
+	// 4. Handle all potential errors
 }
 ```
 
@@ -82,18 +82,6 @@ the container process. This provides resource management capabilities for
 containers.
 
 [Previous step](./04-namespace-and-chroot.md) [Next step](06-volumes.md)
-
-## Hints
-
-- Use the `os.Mkdir` function to create the cgroup directory.
-- Use the `os.WriteFile` function to configure `memory.max`, `cpu.max`, and
-  `cgroup.procs`.
-
-## Key Points
-
-- Understand how to configure cgroups to limit memory and CPU usage.
-- Learn how to use the `os` package in Go to manipulate cgroups.
-- Observe the effect of cgroup configuration on process resource usage.
 
 ## Additional Resources
 

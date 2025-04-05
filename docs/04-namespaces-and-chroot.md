@@ -62,10 +62,10 @@ process:
 
 ```go
 func parent() error {
-    cmd := exec.Command("/proc/self/exe", append([]string{"child"}, os.Args[1:]...)...)
+	cmd := exec.Command("/proc/self/exe", append([]string{"child"}, os.Args[	:]...)...)
 
-    // TODO:
-    // 1. Add the mount namespace flag
+	// TODO:
+	// 1. Add the mount namespace flag
 }
 ```
 
@@ -118,12 +118,12 @@ Implement container root directory setup:
 
 ```go
 func setupContainer() error {
-    // TODO:
-    // 1. Print the current working directory
-    // 2. Change root to "/fs/<image>/rootfs"
-    // 3. Change current directory to root ("/")
+	// TODO:
+	// 1. Print the current working directory
+	// 2. Change root to "/fs/<image>/rootfs"
+	// 3. Change current directory to root ("/")
 
-    return nil
+	return nil
 }
 ```
 

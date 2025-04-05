@@ -14,11 +14,11 @@ container, enabling data persistence and sharing.
 
 ```go
 func setupVolume(volumePath, containerPath string) error {
-    // TODO:
-    // 1. Create the source volume directory on host if it doesn't exist
-    // 2. Create the target mount point in container
-    // 3. Ensure proper permissions (0755)
-    return nil
+	// TODO:
+	// 1. Create the source volume directory on host if it doesn't exist
+	// 2. Create the target mount point in container
+	// 3. Ensure proper permissions (0755)
+	return nil
 }
 ```
 
@@ -48,11 +48,11 @@ Look at `syscall.Mount` function
 
 ```go
 func unmountVolume(target string) error {
-    // TODO:
-    // 1. Unmount the volume
-    // 2. Handle any busy mount errors
-    // 3. Clean up the mount point directory
-    return nil
+	// TODO:
+	// 1. Unmount the volume
+	// 2. Handle any busy mount errors
+	// 3. Clean up the mount point directory
+	return nil
 }
 ```
 <details>
@@ -71,8 +71,8 @@ func setupContainerVolumes(containerID string) error {
 	// 2. Mount each volume
 	// 3. List content of mounted volume
 	
-    
-    return nil
+
+	return nil
 }
 ```
 <details>
@@ -170,22 +170,4 @@ dmesg | tail
 
 # Check mount namespace
 ls -l /proc/$PID/ns/mnt
-```
-
-## Error Handling Examples
-
-```go
-// Handle busy mount point
-if err := syscall.Unmount(target, 0); err != nil {
-    if err == syscall.EBUSY {
-        // Handle busy mount point
-        return fmt.Errorf("mount point is busy: %w", err)
-    }
-    return fmt.Errorf("unmount failed: %w", err)
-}
-
-// Handle non-existent source
-if _, err := os.Stat(source); os.IsNotExist(err) {
-    return fmt.Errorf("source path does not exist: %w", err)
-}
 ```

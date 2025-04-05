@@ -15,8 +15,8 @@ maintaining network isolation.
 
 ```go
 cmd.SysProcAttr = &syscall.SysProcAttr{
-    // Add CLONE_NEWNET to your existing clone flags
-    // This creates a new network namespace for the container
+	// Add CLONE_NEWNET to your existing clone flags
+	// This creates a new network namespace for the container
 }
 ```
 
@@ -26,11 +26,11 @@ cmd.SysProcAttr = &syscall.SysProcAttr{
 
 ```go
 func SetupVeth(vethName string, pid int) error {
-    // TODO: Use "ip link" commands to:
-    // 1. Create a veth pair (veth0 and veth1)
-    // 2. Move veth1 to the container's network namespace
-    // 3. Configure veth0 in the host namespace
-    // 4. Set up NAT rules using iptables
+	// TODO: Use "ip link" commands to:
+	// 1. Create a veth pair (veth0 and veth1)
+	// 2. Move veth1 to the container's network namespace
+	// 3. Configure veth0 in the host namespace
+	// 4. Set up NAT rules using iptables
 }
 ```
 
@@ -38,9 +38,9 @@ func SetupVeth(vethName string, pid int) error {
 
 ```go
 func CleanupVeth(vethName string) error {
-    // TODO: Clean up:
-    // 1. Remove NAT rules
-    // 2. Delete the veth pair
+	// TODO: Clean up:
+	// 1. Remove NAT rules
+	// 2. Delete the veth pair
 }
 ```
 
@@ -50,11 +50,11 @@ func CleanupVeth(vethName string) error {
 
 ```go
 func SetupContainerNetworking(peerName string) error {
-    // TODO: Inside the container:
-    // 1. Assign IP address to the container interface
-    // 2. Bring up the interface
-    // 3. Set up the default route
-    // 4. Configure the loopback interface
+	// TODO: Inside the container:
+	// 1. Assign IP address to the container interface
+	// 2. Bring up the interface
+	// 3. Set up the default route
+	// 4. Configure the loopback interface
 }
 ```
 
@@ -66,7 +66,7 @@ func SetupContainerNetworking(peerName string) error {
 // After starting the container process:
 vethName := "veth0"
 if err := SetupVeth(vethName, cmd.Process.Pid); err != nil {
-    return err
+	return err
 }
 defer CleanupVeth(vethName)  // Ensure cleanup on exit
 ```

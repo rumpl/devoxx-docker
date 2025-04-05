@@ -38,17 +38,17 @@ Use the `os` package to get the pid of the current process: `pid := os.Getpid()`
 
 ```go
 func run() error {
-    cmd := exec.Command("/proc/self/exe", append([]string{"child"}, os.Args...)...)
+	cmd := exec.Command("/proc/self/exe", append([]string{"child"}, os.Args...)...)
 
-    //TODO:
-    // 1. Add namespace flags for PID and UTS namespaces
+	//TODO:
+	// 1. Add namespace flags for PID and UTS namespaces
 
-    if err := cmd.Wait(); err != nil {
-        return fmt.Errorf("wait %w", err)
-    }
+	if err := cmd.Wait(); err != nil {
+		return fmt.Errorf("wait %w", err)
+	}
 
-    fmt.Printf("Container exited with exit code %d\n", cmd.ProcessState.ExitCode())
-    }
+	fmt.Printf("Container exited with exit code %d\n", cmd.ProcessState.ExitCode())
+}
 ```
 
 <details>
@@ -86,9 +86,9 @@ went well, the child pid should be 1.
 
 ```go
 func child() error {
-    //TODO:
-    // 1. Set the container hostname
-    // 2. Print the hostname to verify the change
+	//TODO:
+	// 1. Set the container hostname
+	// 2. Print the hostname to verify the change
 }
 ```
 
