@@ -2,30 +2,72 @@
 
 ## Objective
 
+Control groups (cgroups) are a Linux kernel feature that allows you to group
+processes and then limit, prioritize, or monitor their usage of system resources
+like CPU, memory, I/O, etc.
+
 In this exercise, you will learn how to configure cgroups to limit memory and
 CPU usage for a process. You will focus on setting `memory.max`, `cpu.max`, and
 adding the process to `cgroup.procs`.
 
+Let's explore how cgroups work, this is by no means a comprehensive tutorial,
+only a brief introduction.
+
+Let's browse the cgroups in general and those created by docker, to do that, we
+need to use the `justincormack/nsenter1` image that helps you get inside the
+namespace of the process with PID 1, which is where `dockerd` runs.
+
+```console
+$ docker run -it --rm --privileged --pid=host justincormack/nsenter1
+# ls -l /sys/fs/cgroup
+# ls -l /sys/fs/cgroup/docker
+```
+
+What do we see here. We see a cgroups (v2) hierarchy, `dockerd` creates one
+cgroup for itself and creates, for each container, a new cgroup in
+`/sys/fs/cgroup/docker/<container id>`. Let's test this out!
+
+In a new terminal run this:
+
+```console
+$ docker run --rm -d --cpus 2 nginx
+<container id>
+```
+
+In the `nsenter1` terminal, what do we see?
+
+```console
+# cat /sys/fs/cgroup/docker/<container id>/cpu.max
+200000 100000
+# cat /sys/fs/cgroup/docker/cpu.max
+max 100000
+```
+
+So, by telling docker that we want 2 cpus for this container, it created a new
+cgroup for that container and limited the amount of cpus processes in that
+cgroup can use.
+
+Neat, now let's implement this in our container runtime.
+
 ## Steps
 
-### Step 1: Setup cgroups
+### Step 1: Create a cgroup for the container
 
-1. Create a new directory for the cgroup:
+Create a new directory for the cgroup:
 
 ```go
 func child() error {
 	// TODO:
-	// 1. Create base cgroup directory under the "/fs/cgroup" directory
+	// 1. Create base cgroup directory under the "/sys/fs/cgroup" directory
 	// 2. Set appropriate permissions (0755)
-	// 3. Handle all potential errors
 
 	return nil
 }
 ```
 
-### Step 2: Configure Memory Limit
+### Step 2: Configure memory limit
 
-1. Set the memory limit to 100MB:
+Set the memory limit to 100MB:
 
 ```go
 func child() error {
@@ -36,9 +78,9 @@ func child() error {
 }
 ```
 
-### Step 3: Configure CPU Limit
+### Step 3: Configure CPU limit
 
-1. Set the CPU limit to 50ms per 100ms:
+Set the CPU limit to 50ms per 100ms:
 
 ```go
 func child() error {
@@ -49,9 +91,9 @@ func child() error {
 }
 ```
 
-### Step 4: Add Process to cgroup
+### Step 4: Add process to the cgroup
 
-1. Add the process to the cgroup:
+Add the process to the cgroup:
 
 ```go
 func child() error {
@@ -61,18 +103,6 @@ func child() error {
 	// 3. Write the PID to the file
 	// 4. Handle all potential errors
 }
-```
-
-### Step 5: Testing
-
-1. Build and run your program:
-
-```console
-# Build the program
-make
-
-# Run with sudo (needed for namespace operations)
-sudo ./bin/devoxx-container
 ```
 
 ### Summary
@@ -86,4 +116,3 @@ containers.
 ## Additional Resources
 
 - [man cgroups](https://man7.org/linux/man-pages/man7/cgroups.7.html)
-- [Go os package documentation](https://pkg.go.dev/os)
