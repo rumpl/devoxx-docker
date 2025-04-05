@@ -124,4 +124,5 @@ This is a crucial step towards building a fully functional container runtime.
 - [man clone](https://man7.org/linux/man-pages/man2/clone.2.html)
 - [Go syscall package](https://pkg.go.dev/syscall)
 
-[Previous step](./02-process-creation.md) [Next step](04-namespaces-and-chroot.md)
+[Previous step](./02-process-creation.md) [Next
+step](04-namespaces-and-chroot.md)
