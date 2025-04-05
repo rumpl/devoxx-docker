@@ -1,27 +1,14 @@
 TARGET=./bin/devoxx-container
 TARGET_DIR=$(shell dirname $(TARGET))
-ROOTFS=/fs/ubuntu
 
 default: build
 
-.PHONY: $(TARGET)
-$(TARGET):
+.PHONY: build
+build: ## Build the application (default)
 	@go build -o $(TARGET) .
 
-.PHONY: build
-build: $(TARGET) ## Build the application
-
-.PHONY: run
-run: build ## Run the application
-	@./bin/devoxx-container
-
 clean:  ## Clean everything
-	rm -fr $(ROOTFS)
 	rm -fr $(TARGET_DIR)
-
-$(ROOTFS): ## Download and extract the rootfs of the alpine image
-	@mkdir -p $(ROOTFS)
-	docker export $(shell docker create ubuntu) | tar -C $(ROOTFS) -xvf -
 
 help: ## Show help
 	@echo Available commands:
