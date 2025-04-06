@@ -194,7 +194,7 @@ func (p *ImagePuller) Pull() error {
 		}
 
 		// Create a temporary file to store the layer content
-		layerFile, err := os.Create(filepath.Join(layerDir, "layer.tar"))
+		layerFile, err := os.Create(filepath.Join(layerDir, "layer.tar.gz"))
 		if err != nil {
 			return fmt.Errorf("failed to create layer file: %v", err)
 		}
