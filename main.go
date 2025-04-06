@@ -93,6 +93,11 @@ func parent(args []string) error {
 		Cloneflags: syscall.CLONE_NEWUTS | syscall.CLONE_NEWPID | syscall.CLONE_NEWNS | syscall.CLONE_NEWNET,
 	}
 
+	volumeDestination := fmt.Sprintf("/fs/%s/rootfs/volume", image)
+	if err := os.MkdirAll(volumeDestination, 0755); err != nil {
+		return fmt.Errorf("mkdir %w", err)
+	}
+
 	if err := cmd.Start(); err != nil {
 		return fmt.Errorf("start %w", err)
 	}
@@ -121,11 +126,6 @@ func parent(args []string) error {
 	// We are done setting up things, tell the child to continue
 	if err := ipc.SendReady(parentSocket); err != nil {
 		return fmt.Errorf("send ready: %w", err)
-	}
-
-	volumeDestination := fmt.Sprintf("/fs/%s/rootfs/volume", image)
-	if err := os.MkdirAll(volumeDestination, 0755); err != nil {
-		return fmt.Errorf("mkdir %w", err)
 	}
 
 	if err := cmd.Wait(); err != nil {
