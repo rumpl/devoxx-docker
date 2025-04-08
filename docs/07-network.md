@@ -104,10 +104,10 @@ iptables -t nat -A POSTROUTING -s 10.0.0.0/24 -j MASQUERADE
 ```
 
 - `-t nat` is the Network Address Translation table, it's used for rewriting
-  packed addressses
+  packet addressses
 - `-A POSTROUTING` adds the rule to this chain, which alters the packets just
   before the packet leaves the system
-- `-s 10.0.0.0/24` mathes packets with a source IP in this subnet
+- `-s 10.0.0.0/24` matches packets with a source IP in this subnet
 - `-j MASQUERADE` means it should _masquerade_ the packet: replace its source IP
   with the host's outgoing interface IP
 
