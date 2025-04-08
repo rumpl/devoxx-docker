@@ -178,4 +178,10 @@ container.
 - [Linux Filesystem Hierarchy
   Standard](https://refspecs.linuxfoundation.org/FHS_3.0/fhs/index.html)
 
-[Previous step](./03-namespace-isolation.md) [Next step](05-cgroups.md)
+[Previous step](./03-namespace-isolation.md)
+
+Possible nexte steps, in any order:
+
+- [Discovering cgroups](05-cgroups.md)
+- [Implementing volume mounts](06-volumes.md)
+- [Adding network support](05-network.md)

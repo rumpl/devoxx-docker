@@ -48,8 +48,8 @@ privileges and could potentially damage your system.
 # Development Environment
 
 If you're on MacOS or Windows, you can use the provided dev container
-environment as the exercises require Linux-specific capabilities. We
-recommend using VS Code or JetBrains DevContainer.
+environment as the exercises require Linux-specific capabilities. We recommend
+using VS Code or JetBrains DevContainer.
 
 # The code
 
@@ -71,41 +71,28 @@ sudo ./bin/devoxx-docker <commands>
 
 # Workshop Structure
 
-The workshop is divided into the following exercises, each building upon the
-previous ones:
+The workshop is divided into 6 different parts. Parts 1, 2 and 3 are each
+building upon the previous ones. Once you completed the first 3 parts you are
+free to chose the last 3 in any order you like.
 
-## 1. Process Management
-
-- [Process Creation Basics](02-process-creation.md)
-
+- 1. [Process Creation Basics](02-process-creation.md)
   - Creating a processes
-
-- [Namespace Isolation](03-namespace-isolation.md)
+- 2. [Namespace Isolation](03-namespace-isolation.md)
   - PID namespace isolation
   - UTS namespace for hostname isolation
-
-## 2. Container Foundation
-
-- [Namespaces and Root Directory](04-namespaces-and-chroot.md)
-
+- 3.  [Namespaces and Root Directory](04-namespaces-and-chroot.md)
   - Managing multiple namespaces
   - Implementing chroot
   - Directory structure setup
-
-- [Resource Control with cgroups](05-cgroups.md)
+- 4. [Resource Control with cgroups](05-cgroups.md)
   - CPU limitations
   - Memory constraints
   - Process resource management
-
-## 3. Advanced Features
-
-- [Volume Management](06-volumes.md)
-
+- 5. [Volume Management](06-volumes.md)
   - Implementing bind mounts
   - Volume persistence
   - Data sharing between host and container
-
-- [Network Configuration](07-network.md)
+- 6. [Network Configuration](07-network.md)
   - Network namespace setup
   - Virtual ethernet (veth) pairs
   - Basic networking capabilities
