@@ -152,7 +152,7 @@ Once done you should be able to run:
 $ sudo ./bin/devoxx-container run alpine /bin/sh
 ```
 
-# Step 4: extra
+# Step 5: extra
 
 Now that we have our container running, what happens when you type `ps`?
 How could we fix that?

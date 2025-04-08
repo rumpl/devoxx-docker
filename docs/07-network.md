@@ -166,7 +166,7 @@ ip route add default via 10.0.0.1
 
 </details>
 
-# Step 3: DNS
+# Step 4: DNS
 
 It's always DNS, right?
 
@@ -174,7 +174,7 @@ We should hopefully have networking working now but one last little bit remains,
 we can't `ping google.com`, we need to create the `/etc/resolv.conf` file inside
 the rootfs of the container.
 
-# Step 4: test
+# Step 5: test
 
 1. Test your network implementation:
 
