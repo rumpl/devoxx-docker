@@ -48,13 +48,8 @@ privileges and could potentially damage your system.
 # Development Environment
 
 If you're on MacOS or Windows, you can use the provided dev container
-environment as the exercises require Linux-specific capabilities. Two options
-are available:
-
-1. **VS Code / JetBrains DevContainer**: Configuration provided in
-   `.devcontainer/`
-2. **Docker Compose**: Run `docker compose run --rm -P --build shell` in the
-   `.devcontainer/` directory
+environment as the exercises require Linux-specific capabilities. We
+recommend using VS Code or JetBrains DevContainer.
 
 # The code
 
