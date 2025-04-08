@@ -174,7 +174,7 @@ We should hopefully have networking working now but one last little bit remains,
 we can't `ping google.com`, we need to create the `/etc/resolv.conf` file inside
 the rootfs of the container.
 
-# Step 5: test
+# Step 4: test
 
 1. Test your network implementation:
 
