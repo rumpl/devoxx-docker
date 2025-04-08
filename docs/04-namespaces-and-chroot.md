@@ -164,14 +164,6 @@ Look at the [default things](https://github.com/moby/moby/blob/6cbca96bfa3a2632e
 
 </details>
 
-
-<details>
-<summary>Hint</summary>
-
-Look at the [default things](https://github.com/moby/moby/blob/6cbca96bfa3a2632e1636fb426ad69f9c38524d2/oci/defaults.go#L67-L110) that Docker defines for all containers, maybe take a couple?
-
-</details>
-
 # Summary
 
 We have now implemented mount namespace isolation and changed the root directory
