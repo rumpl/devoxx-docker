@@ -93,7 +93,7 @@ func child() error {
 Look at `syscall.Sethostname` function
 </details>
 
-# Step 5: test
+# Step 4: test
 
 1. Build and run your program:
 
