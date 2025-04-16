@@ -4,6 +4,13 @@ Welcome to this hands-on workshop where you'll learn how to build the basic
 features of a container runtime from scratch. Through a series of exercises,
 you'll implement core container features using Go.
 
+
+⚠️ **WARNING: This is a workshop project only!**
+This container runtime is designed for educational purposes to demonstrate container concepts.   
+It is NOT suitable for production use or any real-world deployments.   
+For production environments, please use established container runtimes like Docker, containerd, or CRI-O.
+
+
 ## First Step - Clone the Repository
 
 Before we begin, you need to clone this repository:

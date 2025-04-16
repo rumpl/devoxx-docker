@@ -14,7 +14,7 @@ Let's create a volume first:
 $ docker volume create devoxx
 ```
 
-Let's now go back to our PID 1 namespace as we did in the last exercice
+Let's now go back to our PID 1 namespace as we did in the last exercise
 
 ```console
 $ docker run -it --rm --privileged --pid=host justincormack/nsenter1
@@ -141,3 +141,224 @@ container.
 - [Container volumes](https://docs.docker.com/storage/volumes/)
 
 [Previous step](./05-cgroups.md) [Next step](07-network.md)
+
+## Solution
+
+<details>
+<summary>Click to see the complete solution</summary>
+
+```go
+const (
+	CGROUP_ROOT = "/sys/fs/cgroup"
+	MEMORY_MAX  = "104857600"    // 100MB memory limit
+	CPU_MAX     = "50000 100000" // 50ms per 100ms period
+	VOLUME_ROOT = "/volumes"     // Base directory for volumes
+)
+
+func main() {
+	if len(os.Args) < 2 {
+		log.Fatal("Not enough arguments")
+	}
+
+	switch os.Args[1] {
+	case "child":
+		if len(os.Args) < 3 {
+			log.Fatal("Missing image name")
+		}
+		if err := child(os.Args[2]); err != nil {
+			log.Fatal(err)
+		}
+	case "pull":
+		if len(os.Args) < 3 {
+			log.Fatal("Missing image name")
+		}
+		if err := pull(os.Args[2]); err != nil {
+			log.Fatal(err)
+		}
+	case "run":
+		if len(os.Args) < 4 {
+			log.Fatal("Missing image name or command")
+		}
+		if err := run(); err != nil {
+			log.Fatal(err)
+		}
+	default:
+		log.Fatal("Unknown command", os.Args[1])
+	}
+}
+
+func pull(image string) error {
+	fmt.Printf("Pulling %s\n", image)
+	puller := remote.NewImagePuller(image)
+	if err := puller.Pull(); err != nil {
+		return fmt.Errorf("pull failed: %w", err)
+	}
+	fmt.Println("Pulling done")
+	return nil
+}
+
+func setupCgroups() error {
+	// Create base cgroup directory
+	cgroupPath := filepath.Join(CGROUP_ROOT, "devoxx-docker")
+	if err := os.MkdirAll(cgroupPath, 0755); err != nil {
+		return fmt.Errorf("failed to create cgroup directory: %w", err)
+	}
+
+	// Set memory limit
+	memoryMaxPath := filepath.Join(cgroupPath, "memory.max")
+	if err := os.WriteFile(memoryMaxPath, []byte(MEMORY_MAX), 0644); err != nil {
+		return fmt.Errorf("failed to set memory limit: %w", err)
+	}
+
+	// Set CPU limit
+	cpuMaxPath := filepath.Join(cgroupPath, "cpu.max")
+	if err := os.WriteFile(cpuMaxPath, []byte(CPU_MAX), 0644); err != nil {
+		return fmt.Errorf("failed to set CPU limit: %w", err)
+	}
+
+	fmt.Printf("Created cgroup at %s with memory limit %s and CPU limit %s\n",
+		cgroupPath, MEMORY_MAX, CPU_MAX)
+
+	return nil
+}
+
+func addProcessToCgroup(pid int) error {
+	cgroupPath := filepath.Join(CGROUP_ROOT, "devoxx-docker")
+	procsPath := filepath.Join(cgroupPath, "cgroup.procs")
+
+	// Write PID to cgroup.procs
+	if err := os.WriteFile(procsPath, []byte(fmt.Sprintf("%d", pid)), 0644); err != nil {
+		return fmt.Errorf("failed to add process to cgroup: %w", err)
+	}
+
+	fmt.Printf("Added process %d to cgroup %s\n", pid, cgroupPath)
+	return nil
+}
+
+func setupVolume(containerPath string) error {
+	// Create the volume directory if it doesn't exist
+	if err := os.MkdirAll(containerPath, 0755); err != nil {
+		return fmt.Errorf("failed to create volume directory: %w", err)
+	}
+
+	fmt.Printf("Created volume directory at %s\n", containerPath)
+	return nil
+}
+
+func mountVolume(source, target string) error {
+	// Ensure target directory exists
+	if err := os.MkdirAll(target, 0755); err != nil {
+		return fmt.Errorf("failed to create mount point: %w", err)
+	}
+
+	// Perform bind mount
+	flags := syscall.MS_BIND | syscall.MS_REC | syscall.MS_PRIVATE
+	if err := syscall.Mount(source, target, "", uintptr(flags), ""); err != nil {
+		return fmt.Errorf("failed to bind mount volume: %w", err)
+	}
+
+	fmt.Printf("Mounted volume from %s to %s\n", source, target)
+	return nil
+}
+
+func unmountVolume(target string) error {
+	// Try to unmount
+	if err := syscall.Unmount(target, syscall.MNT_DETACH); err != nil {
+		if err == syscall.EBUSY {
+			// If mount is busy, retry with force unmount
+			fmt.Printf("Mount point busy, attempting force unmount of %s\n", target)
+			if err := syscall.Unmount(target, syscall.MNT_FORCE); err != nil {
+				return fmt.Errorf("failed to force unmount volume: %w", err)
+			}
+		} else {
+			return fmt.Errorf("failed to unmount volume: %w", err)
+		}
+	}
+
+	// Clean up the mount point directory
+	if err := os.RemoveAll(target); err != nil {
+		return fmt.Errorf("failed to remove mount point directory: %w", err)
+	}
+
+	fmt.Printf("Unmounted and cleaned up volume at %s\n", target)
+	return nil
+}
+
+func child(image string) error {
+	// Print the PID of the current process
+	fmt.Println("CHILD: Hello from child, my pid is", os.Getpid())
+
+	// Print a simple message
+	fmt.Println("Hello from child")
+
+	// Set container hostname
+	if err := syscall.Sethostname([]byte("container")); err != nil {
+		return err
+	}
+
+	// Print new hostname to verify the change
+	hostname, err := os.Hostname()
+	if err != nil {
+		return err
+	}
+	fmt.Printf("CHILD Hostname: %s\n", hostname)
+
+	// Set up volume mounts if specified
+	if len(os.Args) > 4 && os.Args[4] == "-v" {
+		volumeSpec := os.Args[5]
+		parts := strings.Split(volumeSpec, ":")
+		if len(parts) != 2 {
+			return fmt.Errorf("invalid volume specification: %s", volumeSpec)
+		}
+
+		source := filepath.Join(VOLUME_ROOT, parts[0])
+		target := filepath.Join("/", parts[1])
+
+		if err := mountVolume(source, target); err != nil {
+			return err
+		}
+
+		// Register cleanup handler
+		defer unmountVolume(target)
+	}
+
+	// Execute the command
+	cmd := exec.Command(os.Args[3], os.Args[4:]...)
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	return cmd.Run()
+}
+
+func run() error {
+	// Create a unique volume path for this container
+	volumePath := filepath.Join(VOLUME_ROOT, fmt.Sprintf("vol-%d", time.Now().UnixNano()))
+
+	if err := setupVolume(volumePath); err != nil {
+		return err
+	}
+
+	cmd := exec.Command("/proc/self/exe", append([]string{"child"}, os.Args[2:]...)...)
+
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	cmd.SysProcAttr = &syscall.SysProcAttr{
+		Cloneflags: syscall.CLONE_NEWUTS | syscall.CLONE_NEWPID | syscall.CLONE_NEWNS,
+	}
+
+	if err := cmd.Start(); err != nil {
+		return fmt.Errorf("start failed: %w", err)
+	}
+
+	if err := cmd.Wait(); err != nil {
+		return fmt.Errorf("wait failed: %w", err)
+	}
+
+	fmt.Printf("Container exited with code %d\n", cmd.ProcessState.ExitCode())
+	return nil
+}
+```
+</details>

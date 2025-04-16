@@ -81,7 +81,7 @@ func setupCgroups(childPid string) error {
 Set the CPU limit to 50ms per 100ms:
 
 ```go
-func setupCgroups(childPid string) error {
+func setupCgroups() error {
 	// TODO:
 	// 1. Create the file to set the CPU limit
 	// 2. Write the limit value (50ms per 100ms) to the file
@@ -95,7 +95,7 @@ func setupCgroups(childPid string) error {
 Add the process to the cgroup. This must be done in the parent process after starting the child but before waiting for it to complete:
 
 ```go
-func addProcessToCgroup(containerID string, pid int) error {
+func addProcessToCgroup(pid int) error {
 	// TODO:
 	// 1. Get the PID of the child process
 	// 2. Create the file to add the process to the cgroup
@@ -131,3 +131,161 @@ containers.
 - [man cgroups](https://man7.org/linux/man-pages/man7/cgroups.7.html)
 
 [Previous step](./04-namespaces-and-chroot.md) [Next step](06-volumes.md)
+
+## Solution
+
+<details>
+<summary>Click to see the complete solution</summary>
+
+```go
+const (
+	CGROUP_ROOT = "/sys/fs/cgroup"
+	MEMORY_MAX  = "104857600"    // 100MB memory limit
+	CPU_MAX     = "50000 100000" // 50ms per 100ms period
+)
+
+func main() {
+	if len(os.Args) < 2 {
+		log.Fatal("Not enough arguments")
+	}
+
+	switch os.Args[1] {
+	case "child":
+		if len(os.Args) < 3 {
+			log.Fatal("Missing image name")
+		}
+		if err := child(os.Args[2]); err != nil {
+			log.Fatal(err)
+		}
+	case "pull":
+		if len(os.Args) < 3 {
+			log.Fatal("Missing image name")
+		}
+		if err := pull(os.Args[2]); err != nil {
+			log.Fatal(err)
+		}
+	case "run":
+		if len(os.Args) < 4 {
+			log.Fatal("Missing image name or command")
+		}
+		if err := run(); err != nil {
+			log.Fatal(err)
+		}
+	default:
+		log.Fatal("Unknown command", os.Args[1])
+	}
+}
+
+func pull(image string) error {
+	fmt.Printf("Pulling %s\n", image)
+	puller := remote.NewImagePuller(image)
+	if err := puller.Pull(); err != nil {
+		return fmt.Errorf("pull failed: %w", err)
+	}
+	fmt.Println("Pulling done")
+	return nil
+}
+
+func child(image string) error {
+	fmt.Printf("CHILD PID: %d\n", os.Getpid())
+
+	if err := syscall.Sethostname([]byte("container")); err != nil {
+		return fmt.Errorf("sethostname failed: %w", err)
+	}
+
+	hostname, err := os.Hostname()
+	if err != nil {
+		return err
+	}
+	fmt.Printf("CHILD Hostname: %s\n", hostname)
+
+	// Change root directory
+	if err := syscall.Chroot(fmt.Sprintf("/fs/%s/rootfs", image)); err != nil {
+		return fmt.Errorf("chroot failed: %w", err)
+	}
+
+	if err := syscall.Chdir("/"); err != nil {
+		return fmt.Errorf("chdir failed: %w", err)
+	}
+
+	// Execute the command
+	cmd := exec.Command(os.Args[3], os.Args[4:]...)
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	return cmd.Run()
+}
+
+func setupCgroups() error {
+	// Create base cgroup directory
+	cgroupPath := filepath.Join(CGROUP_ROOT, "devoxx-docker")
+	if err := os.MkdirAll(cgroupPath, 0755); err != nil {
+		return fmt.Errorf("failed to create cgroup directory: %w", err)
+	}
+
+	// Set memory limit
+	memoryMaxPath := filepath.Join(cgroupPath, "memory.max")
+	if err := os.WriteFile(memoryMaxPath, []byte(MEMORY_MAX), 0644); err != nil {
+		return fmt.Errorf("failed to set memory limit: %w", err)
+	}
+
+	// Set CPU limit
+	cpuMaxPath := filepath.Join(cgroupPath, "cpu.max")
+	if err := os.WriteFile(cpuMaxPath, []byte(CPU_MAX), 0644); err != nil {
+		return fmt.Errorf("failed to set CPU limit: %w", err)
+	}
+
+	fmt.Printf("Created cgroup at %s with memory limit %s and CPU limit %s\n",
+		cgroupPath, MEMORY_MAX, CPU_MAX)
+
+	return nil
+}
+
+func addProcessToCgroup(pid int) error {
+	cgroupPath := filepath.Join(CGROUP_ROOT, "devoxx-docker")
+	procsPath := filepath.Join(cgroupPath, "cgroup.procs")
+
+	// Write PID to cgroup.procs
+	if err := os.WriteFile(procsPath, []byte(fmt.Sprintf("%d", pid)), 0644); err != nil {
+		return fmt.Errorf("failed to add process to cgroup: %w", err)
+	}
+
+	fmt.Printf("Added process %d to cgroup %s\n", pid, cgroupPath)
+	return nil
+}
+
+func run() error {
+	// Set up cgroups before starting the container
+	if err := setupCgroups(); err != nil {
+		return err
+	}
+
+	cmd := exec.Command("/proc/self/exe", append([]string{"child"}, os.Args[2:]...)...)
+
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	cmd.SysProcAttr = &syscall.SysProcAttr{
+		Cloneflags: syscall.CLONE_NEWUTS | syscall.CLONE_NEWPID | syscall.CLONE_NEWNS,
+	}
+
+	if err := cmd.Start(); err != nil {
+		return fmt.Errorf("start failed: %w", err)
+	}
+
+	// Add the process to cgroup after starting but before waiting
+	if err := addProcessToCgroup(cmd.Process.Pid); err != nil {
+		return err
+	}
+
+	if err := cmd.Wait(); err != nil {
+		return fmt.Errorf("wait failed: %w", err)
+	}
+
+	fmt.Printf("Container exited with code %d\n", cmd.ProcessState.ExitCode())
+	return nil
+}
+```
+</details>

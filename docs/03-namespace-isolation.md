@@ -119,3 +119,89 @@ This is a crucial step towards building a fully functional container runtime.
 
 [Previous step](./02-process-creation.md) [Next
 step](04-namespaces-and-chroot.md)
+
+## Solution
+
+<details>
+<summary>Click to see the complete solution</summary>
+
+```go
+func main() {
+    if len(os.Args) < 2 {
+        if err := run(); err != nil {
+            log.Fatal(err)
+        }
+        os.Exit(0)
+    }
+    switch os.Args[1] {
+    case "child":
+        if err := child(); err != nil {
+            log.Fatal(err)
+        }
+    case "run":
+        if err := run(); err != nil {
+            log.Fatal(err)
+        }
+    default:
+        log.Fatal("Unknown command", os.Args[1])
+    }
+}
+
+func child() error {
+    // Print the PID of the current process
+    fmt.Println("CHILD: Hello from child, my pid is", os.Getpid())
+
+    // Print a simple message
+    fmt.Println("Hello from child")
+	
+    // Set container hostname
+    if err := syscall.Sethostname([]byte("container")); err != nil {
+        return err
+    }
+
+    // Print new hostname to verify the change
+    hostname, err := os.Hostname()
+    if err != nil {
+        return err
+    }
+    fmt.Printf("CHILD Hostname: %s\n", hostname)
+    
+    return nil
+}
+
+func run() error {
+    // Print the PID of the current process
+    fmt.Println("PARENT: Hello from parent, my pid is", os.Getpid())
+    
+	// Print hostname
+    hostname, err := os.Hostname()
+    if err != nil {
+        return err
+    }
+    fmt.Printf("PARENT Hostname: %s\n", hostname)
+	
+    cmd := exec.Command("/proc/self/exe", append([]string{"child"}, os.Args[1:]...)...)
+    
+    // Set up stdin/stdout/stderr
+    cmd.Stdin = os.Stdin
+    cmd.Stdout = os.Stdout
+    cmd.Stderr = os.Stderr
+
+    // Add namespace flags for PID and UTS namespaces
+    cmd.SysProcAttr = &syscall.SysProcAttr{
+        Cloneflags: syscall.CLONE_NEWUTS | syscall.CLONE_NEWPID,
+    }
+
+    if err := cmd.Start(); err != nil {
+        return fmt.Errorf("start: %w", err)
+    }
+
+    if err := cmd.Wait(); err != nil {
+        return fmt.Errorf("wait: %w", err)
+    }
+
+    fmt.Printf("Container exited with exit code %d\n", cmd.ProcessState.ExitCode())
+    return nil
+}
+```
+</details>
