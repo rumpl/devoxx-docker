@@ -49,12 +49,13 @@ Neat, now let's implement this in our container runtime.
 
 # Step 1: Create a cgroup for the container
 
-Create a new directory for the cgroup:
+This should be done in the parent process before starting the container:
 
 ```go
-func child() error {
+func setupCgroups(childPid string) error {
 	// TODO:
 	// 1. Create base cgroup directory under the "/sys/fs/cgroup" directory
+    // 	For example: "/sys/fs/cgroup/devoxx-docker/<childPid>"
 	// 2. Set appropriate permissions (0755)
 
 	return nil
@@ -66,11 +67,12 @@ func child() error {
 Set the memory limit to 100MB:
 
 ```go
-func child() error {
+func setupCgroups(childPid string) error {
 	// TODO:
 	// 1. Create the file to set the memory limit
 	// 2. Write the limit value (100MB) to the file
-	// 3. Handle all potential errors
+
+        return nil
 }
 ```
 
@@ -79,27 +81,44 @@ func child() error {
 Set the CPU limit to 50ms per 100ms:
 
 ```go
-func child() error {
+func setupCgroups(childPid string) error {
 	// TODO:
 	// 1. Create the file to set the CPU limit
 	// 2. Write the limit value (50ms per 100ms) to the file
-	// 3. Handle all potential errors
+
+        return nil
 }
 ```
 
 # Step 4: Add process to the cgroup
 
-Add the process to the cgroup:
+Add the process to the cgroup. This must be done in the parent process after starting the child but before waiting for it to complete:
 
 ```go
-func child() error {
+func addProcessToCgroup(containerID string, pid int) error {
 	// TODO:
-	// 1. Get the PID of the current process
+	// 1. Get the PID of the child process
 	// 2. Create the file to add the process to the cgroup
-	// 3. Write the PID to the file
-	// 4. Handle all potential errors
+    // 	The file is: "<cgroup_path>/cgroup.procs"
+
+	return nil
 }
 ```
+
+# Step 5: Testing cgroups
+
+To verify your cgroup implementation works correctly:
+
+1. Add some logging to show the memory and CPU limits you've set
+2. Try running a memory-intensive workload in your container:
+
+```console
+# Make sure you're in the dev container terminal
+$ sudo ./bin/devoxx-docker run alpine /bin/sh
+# dd if=/dev/zero of=/dev/null bs=1M count=200
+```
+
+If your cgroup memory limit is working, this should either run slower or fail with an out-of-memory error.
 
 # Summary
 
@@ -111,4 +130,4 @@ containers.
 
 - [man cgroups](https://man7.org/linux/man-pages/man7/cgroups.7.html)
 
-[Previous step](./04-namespace-and-chroot.md) [Next step](06-volumes.md)
+[Previous step](./04-namespaces-and-chroot.md) [Next step](06-volumes.md)

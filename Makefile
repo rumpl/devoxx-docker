@@ -1,4 +1,4 @@
-TARGET=./bin/devoxx-container
+TARGET=./bin/devoxx-docker
 TARGET_DIR=$(shell dirname $(TARGET))
 
 default: build

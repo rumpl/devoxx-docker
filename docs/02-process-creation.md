@@ -6,9 +6,17 @@ to restrict resource usage and provide a separate view of the system.
 
 Let's start small and first only create a new process.
 
-# Step 1: create the main function
+# Step 1: open the main.go file
 
-Set up the basic program structure:
+First, open the main.go file in your editor:
+
+```console
+# Make sure you're in the dev container terminal
+cd /workspaces/devoxx-docker
+code main.go
+```
+
+Now set up the basic program structure:
 
 ```go
 func main() {
@@ -52,19 +60,29 @@ func run() error {
 - Use `/proc/self/exe` to re-execute the same process
 - Use `os.Args` to detect if running as child
 - Use `cmd.Start()` and `cmd.Wait()` for better process control
+- To hook up stdin/stdout/stderr correctly, use:
+  - `cmd.Stdin = os.Stdin`
+  - `cmd.Stdout = os.Stdout`
+  - `cmd.Stderr = os.Stderr`
+    This allows interactive commands to work properly.
 
 </details>
 
-# Step 4: test
+# Step 4: implement the code in the comments
 
-1. Build and run your program:
+Look at the TODOs in the code snippets above and implement each function. Remember to follow the hints in the previous sections.
+
+# Step 5: test
+
+1. Build and run your program in the dev container terminal:
 
 ```console
+# Make sure you're in the dev container terminal
 # Build the program
-go build -o devoxx-container
+make
 
-# Run the program
-./devoxx-container
+# Run the program (still in the dev container terminal)
+./bin/devoxx-docker
 PARENT: Hello from parent, my pid is 1234
 CHILD: Hello from child, my pid is 1325
 PARENT: Child exited with exit code 0

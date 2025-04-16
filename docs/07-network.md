@@ -4,7 +4,7 @@ Our container runtime creates "containers", great, and they can even connect to
 the internet, you can try this by running:
 
 ```console
-$ sudo ./bin/devoxx-container run alpine /bin/sh
+$ sudo ./bin/devoxx-docker run alpine /bin/sh
 # ping 1.1.1.1
 ```
 
@@ -53,13 +53,17 @@ connectivity.
   - Container interface (veth1): 10.0.0.2
 - Required iptables rules should enable NAT for the container subnet
 
+This setup should be done in the parent process before starting the child process:
+
 ```go
-func SetupVeth(vethName string, pid int) error {
+func SetupVeth(pid int) error {
 	// TODO: Use "ip link" commands to:
 	// 1. Create a veth pair (veth0 and veth1)
 	// 2. Move veth1 to the container's network namespace
 	// 3. Configure veth0 in the host namespace
 	// 4. Set up NAT rules using iptables
+
+	return nil
 }
 ```
 
@@ -120,6 +124,8 @@ func CleanupVeth(vethName string) error {
 	// TODO: Clean up:
 	// 1. Remove NAT rules
 	// 2. Delete the veth pair
+
+	return nil
 }
 ```
 
@@ -133,13 +139,17 @@ We need to do a couple things before getting our networking connection:
   match any other routes, in our case the default route should be the IP address
   of the veth that is on the host.
 
+This setup should be done in the child process after the namespace setup but before executing the command:
+
 ```go
-func SetupContainerNetworking(peerName string) error {
+func SetupContainerNetworking() error {
 	// TODO: Inside the container:
-	// 1. Assign IP address to the container interface
+	// 1. Assign IP address to the container interface (veth1)
 	// 2. Bring up the interface
 	// 3. Configure the loopback interface
 	// 4. Set up the default route
+
+	return nil
 }
 ```
 
@@ -179,10 +189,37 @@ the rootfs of the container.
 1. Test your network implementation:
 
 ```console
-$ sudo ./bin/devoxx-container run alpine /bin/sh
+$ sudo ./bin/devoxx-docker run alpine /bin/sh
 # ping 1.1.1.1      # Should reach internet
 # ping google.com   # Should resolve and reach
 ```
+
+# Step 7: Troubleshooting
+
+If you're having trouble with the networking:
+
+1. Check that all interfaces are properly created and configured:
+
+   ```
+   # ip addr
+   ```
+
+2. Check routing:
+
+   ```
+   # ip route
+   ```
+
+3. Check DNS configuration:
+
+   ```
+   # cat /etc/resolv.conf
+   ```
+
+4. Try to trace the network path:
+   ```
+   # traceroute google.com
+   ```
 
 # Additional Resources
 

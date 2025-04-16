@@ -23,6 +23,8 @@ $ docker run --rm -it --privileged alpine sh
 tmpfs on /mnt type tmpfs (rw,relatime)
 ```
 
+> Note: `unshare` is a Linux command that runs a program in a new namespace. In this case, it creates a new mount namespace and then runs the `sh` shell in it. This isolates the mount operations from the rest of the system.
+
 In the second terminal first run `docker ps` and find the ID of the first
 running container. Then you can:
 
@@ -53,7 +55,7 @@ process:
 
 ```go
 func parent() error {
-	cmd := exec.Command("/proc/self/exe", append([]string{"child"}, os.Args[	:]...)...)
+	cmd := exec.Command("/proc/self/exe", append([]string{"child"}, os.Args[1:]...)...)
 
 	// TODO:
 	// 1. Add the mount namespace flag
@@ -77,7 +79,7 @@ of an image.
 Here is how you should use the pulling functions:
 
 ```golang
-image := alpine
+image := "alpine"  // Note: this should be a string in quotes
 // Create a puller for an image
 puller := remote.NewImagePuller(image)
 err := puller.Pull()
@@ -90,14 +92,22 @@ extracted to `/fs/<image>`.
 Create a function `pull(image string) error` that you can hook up to when the
 command is `pull`.
 
+> Note: The image pull command should be run with sudo from the dev container terminal.
+
 Running the program after this step should look like:
 
 ```console
 $ sudo ./bin/devoxx-docker pull alpine
 Pulling alpine
 Pulling done
-$ ls -l /fs/alpine/rootfs
+$ sudo ls -l /fs/alpine/rootfs
 ... contents of the root filesystem of the alpine image ..
+```
+
+If you get an error running the pull command a second time, you may need to clean up the existing directories:
+
+```console
+$ sudo rm -rf /fs/alpine
 ```
 
 # Step 3: change the root directory
@@ -144,12 +154,12 @@ image we downloaded from Docker Hub. We are missing one last piece: running a
 command in the child process, the container entrypoint if you will.
 
 Write the needed code in the child process that will take the command to run
-passed from the parent.
+passed from the parent. Remember to hook up stdin and stdout just like you did in the parent process.
 
 Once done you should be able to run:
 
 ```console
-$ sudo ./bin/devoxx-container run alpine /bin/sh
+$ sudo ./bin/devoxx-docker run alpine /bin/sh
 ```
 
 # Step 5: extra
@@ -161,6 +171,8 @@ How could we fix that?
 <summary>Hint</summary>
 
 Look at the [default things](https://github.com/moby/moby/blob/6cbca96bfa3a2632e1636fb426ad69f9c38524d2/oci/defaults.go#L67-L110) that Docker defines for all containers, maybe take a couple?
+
+You may need to use `syscall.Mount` to mount the `/proc` filesystem inside your container to make the `ps` command work correctly.
 
 </details>
 
@@ -184,4 +196,4 @@ Possible nexte steps, in any order:
 
 - [Discovering cgroups](05-cgroups.md)
 - [Implementing volume mounts](06-volumes.md)
-- [Adding network support](05-network.md)
+- [Adding network support](07-network.md)

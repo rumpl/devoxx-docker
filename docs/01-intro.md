@@ -4,6 +4,17 @@ Welcome to this hands-on workshop where you'll learn how to build the basic
 features of a container runtime from scratch. Through a series of exercises,
 you'll implement core container features using Go.
 
+## First Step - Clone the Repository
+
+Before we begin, you need to clone this repository:
+
+```console
+git clone https://github.com/rumpl/devoxx-docker.git
+cd devoxx-docker
+```
+
+Go ahead and run these commands now.
+
 Things that we will cover during this workshop:
 
 - Process isolation and management
@@ -25,7 +36,7 @@ If all goes well, at the end of this workshop you will be able to run an alpine
 Here is a sneak peak of how this would look like:
 
 ```console
-vscode ➜ /workspaces/devoxx-docker (main) $ sudo ./bin/devoxx-container run alpine /bin/sh
+vscode ➜ /workspaces/devoxx-docker (main) $ sudo ./bin/devoxx-docker run alpine /bin/sh
 Running /bin/sh in alpine
 / # ping google.com
 PING google.com (216.58.214.174): 56 data bytes
@@ -51,6 +62,16 @@ If you're on MacOS or Windows, you can use the provided dev container
 environment as the exercises require Linux-specific capabilities. We recommend
 using VS Code or JetBrains DevContainer.
 
+## Important: Open in Dev Container
+
+After cloning the repository:
+
+1. Open the project in VS Code
+2. When prompted, click "Reopen in Container" or use the command palette (F1) and select "Remote-Containers: Reopen in Container"
+3. Wait for the dev container to build and start
+
+All terminal commands should be run in the VS Code terminal inside the dev container, not on your host machine.
+
 # The code
 
 This repository serves as a starter for this workshop, we already provide the
@@ -68,6 +89,8 @@ make
 # Run the project
 sudo ./bin/devoxx-docker <commands>
 ```
+
+Go ahead and run these commands now in your dev container terminal to make sure everything is set up correctly.
 
 # Workshop Structure
 

@@ -102,7 +102,7 @@ Look at `syscall.Sethostname` function
 make
 
 # Run with sudo
-sudo ./bin/devoxx-container
+sudo ./bin/devoxx-docker
 ```
 
 # Summary

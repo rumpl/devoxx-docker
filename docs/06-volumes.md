@@ -46,7 +46,7 @@ In the parent process, create a directory inside the rootfs of the container, we
 will use the `volume` directory present in this repository as our source volume.
 
 ```go
-func setupVolume(volumePath, containerPath string) error {
+func setupVolume(containerPath string) error {
 	// TODO: Create a directory inside the rootfs of the container
 	return nil
 }
@@ -119,10 +119,12 @@ Look at `syscall.Unmount` function
 make
 
 # Run with sudo
-sudo ./bin/devoxx-container ...
+sudo ./bin/devoxx-docker ...
 
 # check the content of the mounted volume
 ```
+
+If everything works correctly, the file you created in the container should be visible in the volume directory on the host.
 
 # Summary
 
