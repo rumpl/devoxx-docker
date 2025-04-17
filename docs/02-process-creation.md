@@ -100,3 +100,69 @@ become a real container.
 - [Go os package](https://pkg.go.dev/os)
 
 [Previous step](./01-intro.md) [Next step](./03-namespace-isolation.md)
+
+
+## Solution
+
+<details>
+<summary>Click to see the complete solution</summary>
+
+```go
+func main() {
+    if len(os.Args) < 2 {
+        if err := run(); err != nil {
+            log.Fatal(err)
+        }
+        os.Exit(0)
+    }
+    switch os.Args[1] {
+    case "child":
+		if err := child(); err != nil {
+			log.Fatal(err)
+		}
+    default:
+        log.Fatal("Unknown command", os.Args[1])
+    }
+}
+
+func child() error {
+    // Print the PID of the current process
+    fmt.Println("CHILD: Hello from child, my pid is", os.Getpid())
+    
+    // Print a simple message
+    fmt.Println("Hello from child")
+    return nil
+}
+
+func run() error {
+    // Print the PID of the current process
+    fmt.Println("PARENT: Hello from parent, my pid is", os.Getpid())
+    
+    // Create a new process using current executable
+    cmd := exec.Command("/proc/self/exe", append([]string{"child"}, os.Args[1:]...)...)
+    
+    // Set up stdin/stdout/stderr
+    cmd.Stdin = os.Stdin
+    cmd.Stdout = os.Stdout
+    cmd.Stderr = os.Stderr
+
+    // Add namespace flags
+    cmd.SysProcAttr = &syscall.SysProcAttr{
+        Cloneflags: syscall.CLONE_NEWPID,
+    }
+
+    // Start the child process
+    if err := cmd.Start(); err != nil {
+        return err
+    }
+
+    // Wait for completion and print exit status
+    if err := cmd.Wait(); err != nil {
+        return err
+    }
+    fmt.Println("PARENT: Child exited with exit code", cmd.ProcessState.ExitCode())
+    
+    return nil
+}
+```
+</details>
